@@ -83,6 +83,7 @@ function love.update(dt)
     if player.attributes.jet.isInJet then
         movePlayerInJet()
     else
+        
     end
     World:update(dt)
 end
