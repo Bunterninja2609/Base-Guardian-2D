@@ -14,29 +14,29 @@ function love.load()
         player.attributes = {}
         player.attributes.jet = {}
         player.attributes.jet.isInJet = true
-        player.attributes.jet.speed = 100
-        player.attributes.jet.turningSpeed = 0.01
+        player.attributes.jet.speed = 150
+        player.attributes.jet.turningSpeed = 0.03
         player.attributes.jet.image = love.graphics.newImage("player.png")
         player.attributes.jet.scale = 5
         player.attributes.jet.height = 5
     
     
     cam = {}
-    cam.x = 0
-    cam.y = 0
-    cam.vfX = 0
-    cam.vfY = 0
-    cam.position = love.math.newTransform(cam.x, cam.y)
-    
-    cam.attach = function()
+        cam.x = 0
+        cam.y = 0
+        cam.vfX = 0
+        cam.vfY = 0
         cam.position = love.math.newTransform(cam.x, cam.y)
-        love.graphics.push()
-        love.graphics.scale(worldScale)
-        love.graphics.translate(-cam.x + cam.vfX + love.graphics.getWidth() / 2 / worldScale, -cam.y + cam.vfY + love.graphics.getHeight() / 2 / worldScale)
-    end
-    cam.detach = function()
-        love.graphics.pop()
-    end
+    
+        cam.attach = function()
+            cam.position = love.math.newTransform(cam.x, cam.y)
+            love.graphics.push()
+            love.graphics.scale(worldScale)
+            love.graphics.translate(-cam.x + cam.vfX + love.graphics.getWidth() / 2 / worldScale, -cam.y + cam.vfY + love.graphics.getHeight() / 2 / worldScale)
+        end
+        cam.detach = function()
+            love.graphics.pop()
+        end
     worldScale = 5
 end
 
@@ -99,25 +99,24 @@ end
 
 function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
+    love.graphics.setColor(1, 1, 1)
     cam:attach()
 
     local playerX, playerY = player.body:getX(), player.body:getY()
-    love.graphics.setColor(1, 1, 1)
+
+    -- Draw temporary Background
     for i = 0, 20, 1 do
         for j = 0, 20,1 do
             love.graphics.draw(grassImage,i * 32,j * 32)
         end
     end
-    -- Draw the player image with rotation
+    -- Draw the player shadow
     love.graphics.setColor(0, 0, 0, 0.5)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    -- Draw the player
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     
-
-    -- Draw other elements
-    
-    love.graphics.rectangle("fill", 0, 0, 200, 20)
     
     cam:detach()
 end
