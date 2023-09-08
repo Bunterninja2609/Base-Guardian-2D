@@ -3,6 +3,8 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
 
+    grassImage = love.graphics.newImage("grass.png")
+
     World = love.physics.newWorld(0, 0, true)
     player = {}
         player.body = love.physics.newBody(World, 0, 300, "dynamic")
@@ -95,16 +97,27 @@ function love.update(dt)
 end
 
 function love.draw()
+    love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
     cam:attach()
 
     local playerX, playerY = player.body:getX(), player.body:getY()
-    
+    love.graphics.setColor(1, 1, 1)
+    for i = 0, 20, 1 do
+        for j = 0, 20,1 do
+            love.graphics.draw(grassImage,i * 32,j * 32)
+        end
+    end
     -- Draw the player image with rotation
+    love.graphics.setColor(0, 0, 0, 0.5)
+    love.graphics.draw(player.attributes.jet.image, playerX, playerY + 2, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    
 
     -- Draw other elements
+    
     love.graphics.rectangle("fill", 0, 0, 200, 20)
-
+    
     cam:detach()
 end
 
