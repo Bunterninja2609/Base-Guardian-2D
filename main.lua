@@ -1,34 +1,40 @@
 function love.load()
     love.physics.setMeter(64)
-    World = love.physics.newWorld(0, 0, true)
-    player = {}
-    player.body = love.physics.newBody(World, 0, 300, "dynamic")
-    player.shape = love.physics.newCircleShape(10)
-    player.fixture = love.physics.newFixture(player.body, player.shape)
-    player.direction = 0 * math.pi
-    player.attributes = {}
-    player.attributes.jet = {}
-    player.attributes.jet.isInJet = true
-    player.attributes.jet.speed = 100
-    player.attributes.jet.turningSpeed = 0.01
-    player.attributes.jet.image = love.graphics.newImage("player.png")
+    love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
 
+    World = love.physics.newWorld(0, 0, true)
+    player = {}
+        player.body = love.physics.newBody(World, 0, 300, "dynamic")
+        player.shape = love.physics.newCircleShape(10)
+        player.fixture = love.physics.newFixture(player.body, player.shape)
+        player.direction = 0 * math.pi
+        player.attributes = {}
+        player.attributes.jet = {}
+        player.attributes.jet.isInJet = true
+        player.attributes.jet.speed = 100
+        player.attributes.jet.turningSpeed = 0.01
+        player.attributes.jet.image = love.graphics.newImage("player.png")
+        player.attributes.jet.scale = 5
+    
+    
     cam = {}
     cam.x = 0
     cam.y = 0
+    cam.vfX = 0
+    cam.vfY = 0
     cam.position = love.math.newTransform(cam.x, cam.y)
     
     cam.attach = function()
         cam.position = love.math.newTransform(cam.x, cam.y)
         love.graphics.push()
         love.graphics.scale(worldScale)
-        love.graphics.translate(-cam.x + love.graphics.getWidth() / 2, -cam.y + love.graphics.getHeight() / 2)
+        love.graphics.translate(-cam.x + cam.vfX + love.graphics.getWidth() / 2 / worldScale, -cam.y + cam.vfY + love.graphics.getHeight() / 2 / worldScale)
     end
     cam.detach = function()
         love.graphics.pop()
     end
-    worldScale = 1
+    worldScale = 5
 end
 
 function movePlayerInJet()
@@ -94,7 +100,7 @@ function love.draw()
     local playerX, playerY = player.body:getX(), player.body:getY()
     
     -- Draw the player image with rotation
-    love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
 
     -- Draw other elements
     love.graphics.rectangle("fill", 0, 0, 200, 20)
@@ -107,6 +113,6 @@ end
 function love.keypressed(key, scancode, isrepeat)
     if key == "escape" then 
         fullscreen = not fullscreen
-        love.window.setFullscreen(fullscreen, "exclusive") 	
+        love.window.setFullscreen(fullscreen, "desktop") 	
     end 
 end
