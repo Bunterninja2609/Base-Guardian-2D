@@ -14,8 +14,8 @@ function love.load()
         player.attributes = {}
         player.attributes.jet = {}
         player.attributes.jet.isInJet = true
-        player.attributes.jet.speed = 150
-        player.attributes.jet.turningSpeed = 0.03
+        player.attributes.jet.speed = 120
+        player.attributes.jet.turningSpeed = 0.02
         player.attributes.jet.image = love.graphics.newImage("player.png")
         player.attributes.jet.scale = 5
         player.attributes.jet.height = 5
