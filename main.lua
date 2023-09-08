@@ -18,6 +18,7 @@ function love.load()
         player.attributes.jet.turningSpeed = 0.01
         player.attributes.jet.image = love.graphics.newImage("player.png")
         player.attributes.jet.scale = 5
+        player.attributes.jet.height = 5
     
     
     cam = {}
@@ -109,7 +110,7 @@ function love.draw()
     end
     -- Draw the player image with rotation
     love.graphics.setColor(0, 0, 0, 0.5)
-    love.graphics.draw(player.attributes.jet.image, playerX, playerY + 2, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     
