@@ -2,23 +2,26 @@ function love.load()
     love.physics.setMeter(64)
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
+    World = love.physics.newWorld(0, 0, true)
+    worldScale = 5
 
+    -- Temporary Background
     grassImage = love.graphics.newImage("grass.png")
 
-    World = love.physics.newWorld(0, 0, true)
+    
     player = {}
         player.body = love.physics.newBody(World, 0, 300, "dynamic")
         player.shape = love.physics.newCircleShape(10)
         player.fixture = love.physics.newFixture(player.body, player.shape)
         player.direction = 0 * math.pi
         player.attributes = {}
-        player.attributes.jet = {}
-        player.attributes.jet.isInJet = true
-        player.attributes.jet.speed = 120
-        player.attributes.jet.turningSpeed = 0.02
-        player.attributes.jet.image = love.graphics.newImage("player.png")
-        player.attributes.jet.scale = 5
-        player.attributes.jet.height = 5
+            player.attributes.isInJet = true
+            player.attributes.jet = {}
+                player.attributes.jet.speed = 120
+                player.attributes.jet.turningSpeed = 0.02
+                player.attributes.jet.image = love.graphics.newImage("player.png")
+                player.attributes.jet.scale = 5
+                player.attributes.jet.height = 5
     
     
     cam = {}
@@ -37,7 +40,7 @@ function love.load()
         cam.detach = function()
             love.graphics.pop()
         end
-    worldScale = 5
+    
 end
 
 function movePlayerInJet()
@@ -88,8 +91,9 @@ function movePlayerInJet()
 end
 
 
+
 function love.update(dt)
-    if player.attributes.jet.isInJet then
+    if player.attributes.isInJet then
         movePlayerInJet()
     else
         
