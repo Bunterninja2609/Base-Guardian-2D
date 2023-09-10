@@ -4,9 +4,10 @@ function love.load()
     love.window.setFullscreen(true, "desktop")
     World = love.physics.newWorld(0, 0, true)
     worldScale = 5
+    theme = "2023"
 
     -- Temporary Background
-    grassImage = love.graphics.newImage("grass.png")
+    grassImage = love.graphics.newImage("textures/" .. theme .. "/grass.png")
 
     
     player = {}
@@ -19,9 +20,25 @@ function love.load()
             player.attributes.jet = {}
                 player.attributes.jet.speed = 120
                 player.attributes.jet.turningSpeed = 0.02
-                player.attributes.jet.image = love.graphics.newImage("player.png")
+                player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
                 player.attributes.jet.scale = 5
-                player.attributes.jet.height = 5
+                player.attributes.jet.height = 10
+    enemies = {}
+    enemyStats = {
+        tank = {
+            texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
+            speed = 1,
+            range = 3,
+            cooldown = 0.5,
+            reloadTime = 2,
+            barrage = 2,
+            target = "ground",
+            projectile = "shell",
+            isOnGround = true,
+            dropCount = 2
+        }
+    }
+    
     
     
     cam = {}
@@ -89,7 +106,24 @@ function movePlayerInJet()
     cam.x = player.body:getX()
     cam.y = player.body:getY()
 end
-
+function createEnemy(type)
+    local enemyTemplate = enemyStats[type]
+    local enemy = {}
+    enemy.x = 0
+    enemy.y = 0
+    enemy.speed = enemyTemplate.speed
+    enemy.range = enemyTemplate.range
+    enemy.cooldown = enemyTemplate.cooldown
+    enemy.reloadTime = enemyTemplate.reloadTime
+    enemy.barrage = enemyTemplate.barrage
+    enemy.target = enemyTemplate.target
+    enemy.lockedTarget = 
+    if enemyTemplate.isOnGround then
+        local enemy.height = 1
+    else
+        local enemy.height = 10
+    end
+end
 
 
 function love.update(dt)
