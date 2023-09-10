@@ -108,25 +108,30 @@ function movePlayerInJet()
 end
 function createEnemy(type)
     local enemyTemplate = enemyStats[type]
-    local enemy = {}
-    enemy.x = 0
-    enemy.y = 0
-    enemy.speed = enemyTemplate.speed
-    enemy.range = enemyTemplate.range
-    enemy.cooldown = enemyTemplate.cooldown
-    enemy.reloadTime = enemyTemplate.reloadTime
-    enemy.barrage = enemyTemplate.barrage
-    enemy.target = enemyTemplate.target
-    enemy.lockedTarget = 
-    if enemyTemplate.isOnGround then
-        local enemy.height = 1
-    else
-        local enemy.height = 10
-    end
+    
+    
+        local enemy = {}
+        enemy.x = 0
+        enemy.y = 0
+        enemy.speed = enemyTemplate.speed
+        enemy.range = enemyTemplate.range
+        enemy.cooldown = enemyTemplate.cooldown
+        enemy.reloadTime = enemyTemplate.reloadTime
+        enemy.barrage = enemyTemplate.barrage
+        enemy.target = enemyTemplate.target
+        enemy.lockedTarget = nil
+        if enemyTemplate.isOnGround then
+            enemy.height = 1
+        else
+            enemy.height = 10
+        end
+        table.insert(enemies, enemy)
 end
 
 
+
 function love.update(dt)
+    createEnemy("tank")
     if player.attributes.isInJet then
         movePlayerInJet()
     else
@@ -141,7 +146,7 @@ function love.draw()
     cam:attach()
 
     local playerX, playerY = player.body:getX(), player.body:getY()
-
+    
     -- Draw temporary Background
     for i = 0, 20, 1 do
         for j = 0, 20,1 do
