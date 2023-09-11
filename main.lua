@@ -120,6 +120,7 @@ function createEnemy(type)
         enemy.barrage = enemyTemplate.barrage
         enemy.target = enemyTemplate.target
         enemy.lockedTarget = nil
+        enemy.direction = 0 * math.pi
         if enemyTemplate.isOnGround then
             enemy.height = 1
         else
@@ -128,7 +129,11 @@ function createEnemy(type)
         table.insert(enemies, enemy)
 end
 
-
+function updateEnemies()
+    for i, enemy in ipairs(enemies) do
+        
+    end
+end
 
 function love.update(dt)
     createEnemy("tank")
