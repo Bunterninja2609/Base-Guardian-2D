@@ -24,6 +24,10 @@ function love.load()
                 player.attributes.jet.scale = 5
                 player.attributes.jet.height = 10
     enemies = {}
+    base = {}
+    base.body = love.physics.newBody(World, 1000, 300, "dynamic")
+    base.shape = love.physics.newCircleShape(10)
+    base.fixture = love.physics.newFixture(base.body, base.shape)
     enemyStats = {
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
@@ -108,9 +112,12 @@ function movePlayerInJet()
 end
 function createEnemy(type)
     local enemyTemplate = enemyStats[type]
-    
-    
-        local enemy = {}
+
+
+    local enemy = {}  
+        enemy.body = love.physics.newBody(World, 0, 300, "dynamic")
+        enemy.shape = love.physics.newCircleShape(10)
+        enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
         enemy.x = 0
         enemy.y = 0
         enemy.speed = enemyTemplate.speed
@@ -119,18 +126,24 @@ function createEnemy(type)
         enemy.reloadTime = enemyTemplate.reloadTime
         enemy.barrage = enemyTemplate.barrage
         enemy.target = enemyTemplate.target
-        enemy.lockedTarget = nil
+        enemy.lockedTarget = base.fixture
         enemy.direction = 0 * math.pi
-        if enemyTemplate.isOnGround then
-            enemy.height = 1
-        else
-            enemy.height = 10
-        end
-        table.insert(enemies, enemy)
+    if enemyTemplate.isOnGround then
+        enemy.height = 1
+    else
+        enemy.height = 10
+    end
+    table.insert(enemies, enemy)
 end
 
 function updateEnemies()
     for i, enemy in ipairs(enemies) do
+        for j, tile in ipairs(tiles) do
+            if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedtarget)) then
+                enemy.lockedTarget = tile.fixture
+            end
+        end
+        enemy.Body:applyForce(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
         
     end
 end
