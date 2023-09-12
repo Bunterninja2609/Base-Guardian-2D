@@ -31,7 +31,7 @@ function love.load()
     enemyStats = {
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
-            speed = 1,
+            speed = 10,
             range = 3,
             cooldown = 0.5,
             reloadTime = 2,
@@ -43,6 +43,7 @@ function love.load()
         }
     }
     
+    tiles = {}
     
     
     cam = {}
@@ -61,7 +62,7 @@ function love.load()
         cam.detach = function()
             love.graphics.pop()
         end
-    
+        createEnemy("tank")
 end
 
 function movePlayerInJet()
@@ -113,8 +114,8 @@ end
 function createEnemy(type)
     local enemyTemplate = enemyStats[type]
 
-
     local enemy = {}  
+        enemy.texture = enemyTemplate.texture
         enemy.body = love.physics.newBody(World, 0, 300, "dynamic")
         enemy.shape = love.physics.newCircleShape(10)
         enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
@@ -139,17 +140,44 @@ end
 function updateEnemies()
     for i, enemy in ipairs(enemies) do
         for j, tile in ipairs(tiles) do
-            if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedtarget)) then
+            if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedtarget) then
                 enemy.lockedTarget = tile.fixture
             end
         end
-        enemy.Body:applyForce(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
-        
+        enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
+        enemy.x = enemy.body:getX()
+        enemy.y = enemy.body:getY()
     end
 end
 
+function drawEnemies()
+    for i, enemy in ipairs(enemies) do
+        love.graphics.stencil(function()
+            love.graphics.rectangle("fill", enemy.x, enemy.y - enemy.height, enemy.texture:getWidth() / 2, enemy.texture:getHeight())
+        end, "replace", 1)
+
+        love.graphics.setStencilTest("greater", 0)
+
+        love.graphics.setColor(0, 0, 0, 0.5)
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y - enemy.height)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y - enemy.height)
+
+        love.graphics.setStencilTest()
+
+        love.graphics.setColor(1, 1, 1)
+    end
+end
+
+
+
+
+
+
+
+
 function love.update(dt)
-    createEnemy("tank")
+    updateEnemies()
     if player.attributes.isInJet then
         movePlayerInJet()
     else
@@ -172,12 +200,13 @@ function love.draw()
         end
     end
     -- Draw the player shadow
+    drawEnemies()
     love.graphics.setColor(0, 0, 0, 0.5)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     -- Draw the player
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
-    
+    -- Draw Enemies
     
     cam:detach()
 end
