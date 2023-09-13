@@ -154,7 +154,7 @@ function drawEnemies()
     for i, enemy in ipairs(enemies) do
         -- draw enemy shadow
         love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.draw(enemy.texture + enemy.height, enemy.x, enemy.y, enemy.direction, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
         -- draw enemy
         love.graphics.setColor(1, 1, 1)
         love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
