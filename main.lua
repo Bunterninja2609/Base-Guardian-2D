@@ -152,7 +152,8 @@ end
 
 function drawEnemies()
     for i, enemy in ipairs(enemies) do
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction, 1, 1, -enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
+        love.graphics.draw(enemy.texture + enemy.height, enemy.x, enemy.y, enemy.direction, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
     end
 end
 
