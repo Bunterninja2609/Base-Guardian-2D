@@ -127,7 +127,7 @@ function createEnemy(type)
         enemy.reloadTime = enemyTemplate.reloadTime
         enemy.barrage = enemyTemplate.barrage
         enemy.target = enemyTemplate.target
-        enemy.lockedTarget = base.fixture
+        enemy.lockedTarget = player.fixture
         enemy.direction = 0 * math.pi
     if enemyTemplate.isOnGround then
         enemy.height = 1
@@ -141,9 +141,10 @@ function updateEnemies()
     for i, enemy in ipairs(enemies) do
         for j, tile in ipairs(tiles) do
             if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedtarget) then
-                enemy.lockedTarget = tile.fixture
+                enemy.lockedTarget = player.fixture
             end
         end
+        enemy.direction = math.atan2(enemy.x - enemy.lockedTarget:getBody():getX(), enemy.y - enemy.lockedTarget:getBody():getY())
         enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
@@ -154,10 +155,10 @@ function drawEnemies()
     for i, enemy in ipairs(enemies) do
         -- draw enemy shadow
         love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + math.pi / 4, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
         -- draw enemy
         love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + math.pi / 4, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
     end
 end
 
