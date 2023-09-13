@@ -152,20 +152,7 @@ end
 
 function drawEnemies()
     for i, enemy in ipairs(enemies) do
-        love.graphics.stencil(function()
-            love.graphics.rectangle("fill", enemy.x, enemy.y - enemy.height, enemy.texture:getWidth() / 2, enemy.texture:getHeight())
-        end, "replace", 1)
-
-        love.graphics.setStencilTest("greater", 0)
-
-        love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y - enemy.height)
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y - enemy.height)
-
-        love.graphics.setStencilTest()
-
-        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction, 1, 1, -enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
     end
 end
 
