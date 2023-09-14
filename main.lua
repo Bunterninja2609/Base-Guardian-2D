@@ -99,7 +99,8 @@ function movePlayerInJet()
         if directionDifference > math.pi then
             directionDifference = directionDifference - 2 * math.pi
         elseif directionDifference < -math.pi then
-            directionDifference = directionDifference + 2 * math.pi
+            direcpütionDifference = +
+            directionDifference + 2 * math.pi
         end
 
         -- Apply smooth turning
@@ -144,7 +145,11 @@ function updateEnemies()
                 enemy.lockedTarget = player.fixture
             end
         end
-        enemy.direction = math.atan2(enemy.x - enemy.lockedTarget:getBody():getX(), enemy.y - enemy.lockedTarget:getBody():getY())
+        local wantedX = -enemy.x + enemy.lockedTarget:getX()
+        local wantedY = -enemy.y + enemy.lockedTarget:getY()
+        local wantedDirection = math.atan2(wantedX, wantedY)
+        local directionDifference = enemy.direction - wantedDirection
+        enemy.direction = enemy.direction - directiondifference * 1
         enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
