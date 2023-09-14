@@ -148,8 +148,8 @@ function updateEnemies()
         local wantedX = -enemy.x + enemy.lockedTarget:getX()
         local wantedY = -enemy.y + enemy.lockedTarget:getY()
         local wantedDirection = math.atan2(wantedX, wantedY)
-        local directionDifference = enemy.direction - wantedDirection
-        enemy.direction = enemy.direction - directiondifference * 1
+        local directionDifference = -enemy.direction + wantedDirection
+        enemy.direction = enemy.direction + directiondifference * 1
         enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
@@ -211,10 +211,5 @@ end
 
 
 
-function love.keypressed(key, scancode, isrepeat)
-    if key == "escape" then 
-        fullscreen = not fullscreen
-        love.window.setFullscreen(fullscreen, "desktop") 	
-    end 
-end
+ 
 --Hello World
