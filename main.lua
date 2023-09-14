@@ -99,7 +99,8 @@ function movePlayerInJet()
         if directionDifference > math.pi then
             directionDifference = directionDifference - 2 * math.pi
         elseif directionDifference < -math.pi then
-            directionDifference = directionDifference + 2 * math.pi
+            direcpütionDifference = +
+            directionDifference + 2 * math.pi
         end
 
         -- Apply smooth turning
@@ -127,7 +128,7 @@ function createEnemy(type)
         enemy.reloadTime = enemyTemplate.reloadTime
         enemy.barrage = enemyTemplate.barrage
         enemy.target = enemyTemplate.target
-        enemy.lockedTarget = base.fixture
+        enemy.lockedTarget = player.fixture
         enemy.direction = 0 * math.pi
     if enemyTemplate.isOnGround then
         enemy.height = 1
@@ -141,9 +142,14 @@ function updateEnemies()
     for i, enemy in ipairs(enemies) do
         for j, tile in ipairs(tiles) do
             if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedtarget) then
-                enemy.lockedTarget = tile.fixture
+                enemy.lockedTarget = player.fixture
             end
         end
+        local wantedX = -enemy.x + enemy.lockedTarget:getX()
+        local wantedY = -enemy.y + enemy.lockedTarget:getY()
+        local wantedDirection = math.atan2(wantedX, wantedY)
+        local directionDifference = enemy.direction - wantedDirection
+        enemy.direction = enemy.direction - directiondifference * 1
         enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
@@ -152,20 +158,12 @@ end
 
 function drawEnemies()
     for i, enemy in ipairs(enemies) do
-        love.graphics.stencil(function()
-            love.graphics.rectangle("fill", enemy.x, enemy.y - enemy.height, enemy.texture:getWidth() / 2, enemy.texture:getHeight())
-        end, "replace", 1)
-
-        love.graphics.setStencilTest("greater", 0)
-
+        -- draw enemy shadow
         love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y - enemy.height)
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + math.pi / 4, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
+        -- draw enemy
         love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y - enemy.height)
-
-        love.graphics.setStencilTest()
-
-        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + math.pi / 4, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
     end
 end
 
@@ -199,11 +197,11 @@ function love.draw()
             love.graphics.draw(grassImage,i * 32,j * 32)
         end
     end
-    -- Draw the player shadow
     drawEnemies()
+    -- draw player jet shadow
     love.graphics.setColor(0, 0, 0, 0.5)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
-    -- Draw the player
+    -- Draw the player jet
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     -- Draw Enemies
