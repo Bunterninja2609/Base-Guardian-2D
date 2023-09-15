@@ -145,8 +145,8 @@ function updateEnemies()
                 enemy.lockedTarget = player.fixture
             end
         end
-        local wantedX = -enemy.x + enemy.lockedTarget:getX()
-        local wantedY = -enemy.y + enemy.lockedTarget:getY()
+        local wantedX = enemy.lockedTarget:getX() - enemy.x
+        local wantedY = enemy.lockedTarget:getY() - enemy.y
         local wantedDirection = math.atan2(wantedX, wantedY)
         local directionDifference = enemy.direction - wantedDirection
         enemy.direction = enemy.direction - directiondifference * 1
@@ -156,14 +156,15 @@ function updateEnemies()
     end
 end
 
+
 function drawEnemies()
     for i, enemy in ipairs(enemies) do
         -- draw enemy shadow
         love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + math.pi / 4, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + 0.5 * math.pi, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
         -- draw enemy
         love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + math.pi / 4, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
     end
 end
 
@@ -188,8 +189,6 @@ function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
     love.graphics.setColor(1, 1, 1)
     cam:attach()
-
-    local playerX, playerY = player.body:getX(), player.body:getY()
     
     -- Draw temporary Background
     for i = 0, 20, 1 do
@@ -200,10 +199,10 @@ function love.draw()
     drawEnemies()
     -- draw player jet shadow
     love.graphics.setColor(0, 0, 0, 0.5)
-    love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.image, player.x, player.y + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     -- Draw the player jet
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.image, player.x, player.y, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     -- Draw Enemies
     
     cam:detach()
