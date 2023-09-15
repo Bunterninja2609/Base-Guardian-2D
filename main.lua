@@ -198,9 +198,16 @@ function createEnemy(type)
         enemy.turningSpeed = enemyTemplate.turningSpeed
         enemy.range = enemyTemplate.range
         enemy.cooldown = enemyTemplate.cooldown
+        enemy.cooldownTimer = enemy.cooldown
+
         enemy.reloadTime = enemyTemplate.reloadTime
+        enemy.reloadTimer = enemy.reloadTime
+
         enemy.barrage = enemyTemplate.barrage
+        enemy.barrageCounter = enemy.barrage
+
         enemy.target = enemyTemplate.target
+        enemy.projectile = enemyTemplate.projectile
         enemy.lockedTarget = player.fixture
         enemy.direction = 0 * math.pi
     if enemyTemplate.isOnGround then
@@ -211,7 +218,7 @@ function createEnemy(type)
     table.insert(enemies, enemy)
 end
 
-function updateEnemies()
+function updateEnemies(dt)
     for i, enemy in ipairs(enemies) do
         for j, tile in ipairs(tiles) do
             if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
@@ -247,21 +254,37 @@ function updateEnemies()
         enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
+        
+        
+        if enemy.reloadTimer <= 0 then
+            if enemy.cooldownTimer < 0 then
+                createProjectile(enemy.projectile, enemy.x, enemy.y, enemy.direction, 150, currentSpeed)
+                enemy.cooldownTimer = enemy.cooldown
+                enemy.barrageCounter = enemy.barrageCounter - 1
+                if enemy.barrageCounter <= 0 then
+                    enemy.reloadTimer = enemy.reloadTime
+                end
+            else
+                enemy.cooldownTimer = enemy.cooldownTimer - dt
+            end
+        else
+            enemy.barrageCounter = enemy.barrage
+            enemy.reloadTimer = enemy.reloadTimer - dt
+        end
+    
     end
 end
 
 
-function createProjectile(x, y, tx, ty, speed)
-    local dx = tx - x   
-    local dy = ty - y  
+function createProjectile(type, x, y, direction, speed, momentum) 
     
     local projectile = {}
-        projectile.direction = math.atan2(dy, dx)
-        projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * 50, y + math.sin(projectile.direction) * 50, "dynamic")
+        projectile.direction = direction
+        projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * 10, y + math.sin(projectile.direction) * 10, "dynamic")
         projectile.shape = love.physics.newCircleShape(1)
         projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
         
-        projectile.body:setLinearVelocity(math.cos(projectile.direction) * speed, math.sin(projectile.direction) * speed)
+        projectile.body:setLinearVelocity(math.cos(projectile.direction) * (speed + momentum), math.sin(projectile.direction) * (speed + momentum))
 
     table.insert(projectiles, projectile)
 end
@@ -302,7 +325,7 @@ end
 function love.update(dt)
     mouseX = (love.mouse.getX() - love.graphics.getWidth() / 2 ) * worldScale
     mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
-    updateEnemies()
+    updateEnemies(dt)
     updateProjectiles()
     if player.attributes.isInJet then
         movePlayerInJet()
@@ -352,7 +375,7 @@ function love.keypressed(key, scancode, isrepeat)
         player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
     end 
     if key == "space" then
-        createProjectile(player.body:getX(), player.body:getY(), math.cos(player.direction), math.sin(player.direction), 100)
+        createProjectile("bullet",player.body:getX(), player.body:getY(), player.direction, 200)
     end
 end
 --Hello World
