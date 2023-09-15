@@ -147,7 +147,7 @@ function updateEnemies()
         end
         local wantedX = enemy.lockedTarget:getX() - enemy.x
         local wantedY = enemy.lockedTarget:getY() - enemy.y
-        local wantedDirection = math.atan2(wantedX, wantedY)
+        local wantedDirection = math.atan2(wantedY, wantedX)
         local directionDifference = enemy.direction - wantedDirection
         enemy.direction = enemy.direction - directiondifference * 1
         enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
