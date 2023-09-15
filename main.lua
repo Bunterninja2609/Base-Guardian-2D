@@ -23,6 +23,7 @@ function love.load()
                 player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
                 player.attributes.jet.scale = 5
                 player.attributes.jet.height = 10
+                player.attributes.jet.WASDamingMode = true
     enemies = {}
     base = {}
     base.body = love.physics.newBody(World, 1000, 300, "dynamic")
@@ -134,17 +135,21 @@ end
 function movePlayerInJet()
     local wantedY = 0
     local wantedX = 0
+    if player.attributes.jet.WASDamingMode then
+        if love.keyboard.isDown("w") then
+            wantedY = -1  -- Move up
+        elseif love.keyboard.isDown("s") then
+            wantedY = 1   -- Move down
+        end
 
-    if love.keyboard.isDown("w") then
-        wantedY = -1  -- Move up
-    elseif love.keyboard.isDown("s") then
-        wantedY = 1   -- Move down
-    end
-
-    if love.keyboard.isDown("a") then
-        wantedX = -1  -- Move left
-    elseif love.keyboard.isDown("d") then
-        wantedX = 1   -- Move right
+        if love.keyboard.isDown("a") then
+            wantedX = -1  -- Move left
+        elseif love.keyboard.isDown("d") then
+            wantedX = 1   -- Move right
+        end
+    else
+        wantedX = (love.mouse.getX() - love.graphics.getWidth() / 2 ) * worldScale
+        wantedY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
     end
 
     local currentVelocityX, currentVelocityY = player.body:getLinearVelocity()
@@ -184,7 +189,7 @@ function createEnemy(type)
 
     local enemy = {}  
         enemy.texture = enemyTemplate.texture
-        enemy.body = love.physics.newBody(World, 0, 300, "dynamic")
+        enemy.body = love.physics.newBody(World, math.random(-1000, 1000), math.random(-1000, 1000), "dynamic")
         enemy.shape = love.physics.newCircleShape(10)
         enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
         enemy.x = 0
@@ -307,7 +312,10 @@ function love.keypressed(key, scancode, isrepeat)
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
     if key == "e" then 
-        createEnemy("tank")
+        createEnemy("mobileSurfaceToAir")
+    end 
+    if key == "q" then 
+        player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
     end 
 end
 --Hello World
