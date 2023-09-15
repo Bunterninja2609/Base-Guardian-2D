@@ -141,7 +141,7 @@ end
 function updateEnemies()
     for i, enemy in ipairs(enemies) do
         for j, tile in ipairs(tiles) do
-            if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedtarget) then
+            if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
                 enemy.lockedTarget = player.fixture
             end
         end
