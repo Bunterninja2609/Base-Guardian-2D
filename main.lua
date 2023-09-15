@@ -109,7 +109,7 @@ function love.load()
             dropCount = 5
         }
     }
-    
+    projectiles = {}
     tiles = {}
     
     
@@ -251,6 +251,36 @@ function updateEnemies()
 end
 
 
+function createProjectile(x, y, tx, ty, speed)
+    local dx = tx - x   
+    local dy = ty - y  
+    
+    local projectile = {}
+        projectile.direction = math.atan2(dy, dx)
+        projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * 50, y + math.sin(projectile.direction) * 50, "dynamic")
+        projectile.shape = love.physics.newCircleShape(1)
+        projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
+        
+        projectile.body:setLinearVelocity(math.cos(projectile.direction) * speed, math.sin(projectile.direction) * speed)
+
+    table.insert(projectiles, projectile)
+end
+function updateProjectiles(dt) 
+    for i, projectile in ipairs(projectiles) do
+        for i, enemy in ipairs(enemies) do 
+            if math.sqrt((projectile.body:getX() - enemy.x) ^ 2 + (projectile.body:getY() - enemy.y) ^ 2) < 20 then
+                --damage enemy
+            end
+        end
+    end
+end
+function drawProjectiles() 
+    for i, projectile in ipairs(projectiles) do
+        love.graphics.circle("line", projectile.body:getX(), projectile.body:getY(), 1)
+    end
+end
+
+
 function drawEnemies()
     for i, enemy in ipairs(enemies) do
         -- draw enemy shadow
@@ -270,7 +300,10 @@ end
 
 
 function love.update(dt)
+    mouseX = (love.mouse.getX() - love.graphics.getWidth() / 2 ) * worldScale
+    mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
     updateEnemies()
+    updateProjectiles()
     if player.attributes.isInJet then
         movePlayerInJet()
     else
@@ -293,6 +326,7 @@ function love.draw()
         end
     end
     drawEnemies()
+    drawProjectiles()
     -- draw player jet shadow
     love.graphics.setColor(0, 0, 0, 0.5)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
@@ -317,5 +351,8 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "q" then 
         player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
     end 
+    if key == "space" then
+        createProjectile(player.body:getX(), player.body:getY(), math.cos(player.direction), math.sin(player.direction), 100)
+    end
 end
 --Hello World
