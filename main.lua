@@ -31,7 +31,8 @@ function love.load()
     enemyStats = {
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
-            speed = 10,
+            speed = 100,
+            turningSpeed = 0.03,
             range = 3,
             cooldown = 0.5,
             reloadTime = 2,
@@ -99,12 +100,13 @@ function movePlayerInJet()
         if directionDifference > math.pi then
             directionDifference = directionDifference - 2 * math.pi
         elseif directionDifference < -math.pi then
-            direcpütionDifference = +
-            directionDifference + 2 * math.pi
+            directionDifference = directionDifference + 2 * math.pi
         end
 
         -- Apply smooth turning
         player.direction = player.direction + directionDifference * player.attributes.jet.turningSpeed
+        player.x = player.fixture:getBody():getX()
+        player.y = player.fixture:getBody():getY()
     end
 
     player.body:setLinearVelocity(math.cos(player.direction) * player.attributes.jet.speed, math.sin(player.direction) * player.attributes.jet.speed)
@@ -123,6 +125,7 @@ function createEnemy(type)
         enemy.x = 0
         enemy.y = 0
         enemy.speed = enemyTemplate.speed
+        enemy.turningSpeed = enemyTemplate.turningSpeed
         enemy.range = enemyTemplate.range
         enemy.cooldown = enemyTemplate.cooldown
         enemy.reloadTime = enemyTemplate.reloadTime
@@ -145,11 +148,32 @@ function updateEnemies()
                 enemy.lockedTarget = player.fixture
             end
         end
-        local wantedX = enemy.lockedTarget:getX() - enemy.x
-        local wantedY = enemy.lockedTarget:getY() - enemy.y
+        local wantedX = enemy.lockedTarget:getBody():getX() - enemy.x
+        local wantedY = enemy.lockedTarget:getBody():getY() - enemy.y
+        local currentVelocityX, currentVelocityY = enemy.body:getLinearVelocity()
+        local currentSpeed = math.sqrt(currentVelocityX^2 + currentVelocityY^2)
+        local directionDifference = 0
+
+        if currentSpeed > 0 then
+            local currentDirection = math.atan2(currentVelocityY, currentVelocityX)
+            enemy.direction = currentDirection
+        end
+
+        if wantedX ~= 0 or wantedY ~= 0 then
+            local wantedDirection = math.atan2(wantedY, wantedX)
+
+            -- Calculate the difference between the wanted direction and player's current direction
+            directionDifference = wantedDirection - enemy.direction
+
+            -- Ensure smooth turning within [-pi, pi] range
+            if directionDifference > math.pi then
+                directionDifference = directionDifference - 2 * math.pi
+            elseif directionDifference < -math.pi then
+                directionDifference = directionDifference + 2 * math.pi
+            end
+        end
         local wantedDirection = math.atan2(wantedY, wantedX)
-        local directionDifference = enemy.direction - wantedDirection
-        enemy.direction = enemy.direction - directiondifference * 1
+        enemy.direction = enemy.direction + directionDifference * enemy.turningSpeed
         enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
@@ -161,10 +185,10 @@ function drawEnemies()
     for i, enemy in ipairs(enemies) do
         -- draw enemy shadow
         love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + 0.5 * math.pi, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)  
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)  
         -- draw enemy
         love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, - enemy.texture:getWidth() / 2, - enemy.texture:getHeight() / 2)    
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)    
     end
 end
 
@@ -189,6 +213,8 @@ function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
     love.graphics.setColor(1, 1, 1)
     cam:attach()
+
+    local playerX, playerY = player.body:getX(), player.body:getY()
     
     -- Draw temporary Background
     for i = 0, 20, 1 do
@@ -199,10 +225,10 @@ function love.draw()
     drawEnemies()
     -- draw player jet shadow
     love.graphics.setColor(0, 0, 0, 0.5)
-    love.graphics.draw(player.attributes.jet.image, player.x, player.y + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     -- Draw the player jet
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(player.attributes.jet.image, player.x, player.y, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     -- Draw Enemies
     
     cam:detach()
