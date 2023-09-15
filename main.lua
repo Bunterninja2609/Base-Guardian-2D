@@ -18,7 +18,7 @@ function love.load()
         player.attributes = {}
             player.attributes.isInJet = true
             player.attributes.jet = {}
-                player.attributes.jet.speed = 120
+                player.attributes.jet.speed = 150
                 player.attributes.jet.turningSpeed = 0.02
                 player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
                 player.attributes.jet.scale = 5
@@ -31,8 +31,8 @@ function love.load()
     enemyStats = {
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
-            speed = 100,
-            turningSpeed = 0.03,
+            speed = 75,
+            turningSpeed = 0.05,
             range = 3,
             cooldown = 0.5,
             reloadTime = 2,
@@ -41,6 +41,71 @@ function love.load()
             projectile = "shell",
             isOnGround = true,
             dropCount = 2
+        },
+        jet1 = {
+            texture = love.graphics.newImage("textures/" .. theme .. "/player.png"),
+            speed = 130,
+            turningSpeed = 0.025,
+            range = 10,
+            cooldown = 0.2,
+            reloadTime = 3,
+            barrage = 6,
+            target = "optional",
+            projectile = "missiles",
+            isOnGround = false,
+            dropCount = 6
+        },
+        mobileSurfaceToAir = {
+            texture = love.graphics.newImage("textures/" .. theme .. "/antiair.png"),
+            speed = 85,
+            turningSpeed = 0.03,
+            range = 30,
+            cooldown = 0.1,
+            reloadTime = 2,
+            barrage = 10,
+            target = "air",
+            projectile = "missiles",
+            isOnGround = true,
+            dropCount = 7
+        },
+        mortar = {
+            texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
+            speed = 1,
+            turningSpeed = 1,
+            range = 100,
+            cooldown = 0.1,
+            reloadTime = 5,
+            barrage = 3,
+            target = "ground",
+            projectile = "grenade",
+            isOnGround = true,
+            dropCount = 4
+        },
+        jet2 = {
+            texture = love.graphics.newImage("textures/" .. theme .. "/player.png"),
+            speed = 150,
+            turningSpeed = 0.015,
+            range = 15,
+            cooldown = 0.1,
+            reloadTime = 3,
+            barrage = 30,
+            target = "air",
+            projectile = "bullet",
+            isOnGround = false,
+            dropCount = 3
+        },
+        bomber1 = {
+            texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
+            speed = 100,
+            turningSpeed = 0.02,
+            range = 1,
+            cooldown = 0.1,
+            reloadTime = 5,
+            barrage = 5,
+            target = "ground",
+            projectile = "bomb",
+            isOnGround = false,
+            dropCount = 5
         }
     }
     
