@@ -241,5 +241,8 @@ function love.keypressed(key, scancode, isrepeat)
         fullscreen = not fullscreen
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
+    if key == "e" then 
+        createEnemy("tank")
+    end 
 end
 --Hello World
