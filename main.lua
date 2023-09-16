@@ -3,7 +3,7 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
     World = love.physics.newWorld(0, 0, true)
-    worldScale = 5
+    worldScale = 3
     theme = "2023"
 
     -- Temporary Background
@@ -19,11 +19,13 @@ function love.load()
             player.attributes.isInJet = true
             player.attributes.jet = {}
                 player.attributes.jet.speed = 150
-                player.attributes.jet.turningSpeed = 0.02
+                player.attributes.jet.turningSpeed = 0.1
                 player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
-                player.attributes.jet.scale = 5
+                player.attributes.jet.scale = 3
                 player.attributes.jet.height = 10
                 player.attributes.jet.WASDamingMode = true
+                player.attributes.jet.cooldown = 0.1
+                player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
     enemies = {}
     base = {}
     base.body = love.physics.newBody(World, 1000, 300, "dynamic")
@@ -32,7 +34,7 @@ function love.load()
     enemyStats = {
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
-            speed = 75,
+            speed = 25,
             turningSpeed = 0.05,
             range = 3,
             cooldown = 0.5,
@@ -45,7 +47,7 @@ function love.load()
         },
         jet1 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/player.png"),
-            speed = 130,
+            speed = 100,
             turningSpeed = 0.025,
             range = 10,
             cooldown = 0.2,
@@ -58,7 +60,7 @@ function love.load()
         },
         mobileSurfaceToAir = {
             texture = love.graphics.newImage("textures/" .. theme .. "/antiair.png"),
-            speed = 85,
+            speed = 35,
             turningSpeed = 0.03,
             range = 30,
             cooldown = 0.1,
@@ -84,7 +86,7 @@ function love.load()
         },
         jet2 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/player.png"),
-            speed = 150,
+            speed = 120,
             turningSpeed = 0.015,
             range = 15,
             cooldown = 0.1,
@@ -97,7 +99,7 @@ function love.load()
         },
         bomber1 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
-            speed = 100,
+            speed = 75,
             turningSpeed = 0.02,
             range = 1,
             cooldown = 0.1,
@@ -132,7 +134,7 @@ function love.load()
         createEnemy("tank")
 end
 
-function movePlayerInJet()
+function movePlayerInJet(dt)
     local wantedY = 0
     local wantedX = 0
     if player.attributes.jet.WASDamingMode then
@@ -183,6 +185,15 @@ function movePlayerInJet()
 
     cam.x = player.body:getX()
     cam.y = player.body:getY()
+    if player.attributes.jet.cooldownTimer <= 0 then
+        if love.mouse.isDown(1) then
+            createProjectile("bullet" ,player.body:getX() , player.body:getY() ,player.direction , 100 ,currentSpeed)
+            player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
+        end
+    else
+        player.attributes.jet.cooldownTimer = player.attributes.jet.cooldownTimer - dt
+    end
+
 end
 function createEnemy(type)
     local enemyTemplate = enemyStats[type]
@@ -288,15 +299,15 @@ function createProjectile(type, x, y, direction, speed, momentum)
 
     table.insert(projectiles, projectile)
 end
-function updateProjectiles(dt) 
-    for i, projectile in ipairs(projectiles) do
-        for i, enemy in ipairs(enemies) do 
-            if math.sqrt((projectile.body:getX() - enemy.x) ^ 2 + (projectile.body:getY() - enemy.y) ^ 2) < 20 then
-                --damage enemy
-            end
+function updateProjectiles(dt)
+    for i = #projectiles, 1, -1 do
+        local projectile = projectiles[i]
+        for j, enemy in ipairs(enemies) do
+            
         end
     end
 end
+
 function drawProjectiles() 
     for i, projectile in ipairs(projectiles) do
         love.graphics.circle("line", projectile.body:getX(), projectile.body:getY(), 1)
@@ -328,7 +339,7 @@ function love.update(dt)
     updateEnemies(dt)
     updateProjectiles()
     if player.attributes.isInJet then
-        movePlayerInJet()
+        movePlayerInJet(dt)
     else
         
     end
@@ -369,7 +380,7 @@ function love.keypressed(key, scancode, isrepeat)
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
     if key == "e" then 
-        createEnemy("mobileSurfaceToAir")
+        createEnemy("bomber1")
     end 
     if key == "q" then 
         player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
