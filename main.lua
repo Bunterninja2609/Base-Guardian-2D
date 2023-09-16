@@ -98,7 +98,7 @@ function love.load()
             dropCount = 3
         },
         bomber1 = {
-            texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
+            texture = love.graphics.newImage("textures/" .. theme .. "/Bomber1.png"),
             speed = 75,
             turningSpeed = 0.02,
             range = 1,
