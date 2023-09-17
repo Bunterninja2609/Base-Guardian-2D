@@ -26,11 +26,8 @@ function love.load()
                 player.attributes.jet.WASDamingMode = true
                 player.attributes.jet.cooldown = 0.1
                 player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
+    
     enemies = {}
-    base = {}
-    base.body = love.physics.newBody(World, 1000, 300, "dynamic")
-    base.shape = love.physics.newCircleShape(10)
-    base.fixture = love.physics.newFixture(base.body, base.shape)
     enemyStats = {
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
@@ -46,7 +43,7 @@ function love.load()
             dropCount = 2
         },
         jet1 = {
-            texture = love.graphics.newImage("textures/" .. theme .. "/player.png"),
+            texture = love.graphics.newImage("textures/" .. theme .. "/jet1.png"),
             speed = 100,
             turningSpeed = 0.025,
             range = 10,
@@ -111,6 +108,11 @@ function love.load()
             dropCount = 5
         }
     }
+    base = {}
+        base.body = love.physics.newBody(World, 1000, 300, "dynamic")
+        base.shape = love.physics.newCircleShape(10)
+        base.fixture = love.physics.newFixture(base.body, base.shape)
+    
     projectiles = {}
     tiles = {}
     
@@ -131,8 +133,10 @@ function love.load()
         cam.detach = function()
             love.graphics.pop()
         end
-        createEnemy("tank")
-end
+    
+    particleSystem = love.graphics.newParticleSystem(player.attributes.jet.image, 256)
+    particleSystem:setParticleLifetime(2, 3)
+    end
 
 function movePlayerInJet(dt)
     local wantedY = 0
@@ -296,6 +300,9 @@ function createProjectile(type, x, y, direction, speed, momentum)
         projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
         
         projectile.body:setLinearVelocity(math.cos(projectile.direction) * (speed + momentum), math.sin(projectile.direction) * (speed + momentum))
+        particleSystem:setPosition(projectile.body:getX(), projectile.body:getY())
+        particleSystem:setRotation(projectile.direction)
+        particleSystem:emit(32)
 
     table.insert(projectiles, projectile)
 end
@@ -338,6 +345,7 @@ function love.update(dt)
     mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
     updateEnemies(dt)
     updateProjectiles()
+    particleSystem:update(dt)
     if player.attributes.isInJet then
         movePlayerInJet(dt)
     else
@@ -361,6 +369,7 @@ function love.draw()
     end
     drawEnemies()
     drawProjectiles()
+    love.graphics.draw(particleSystem, 0 ,0)
     -- draw player jet shadow
     love.graphics.setColor(0, 0, 0, 0.5)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
@@ -380,7 +389,7 @@ function love.keypressed(key, scancode, isrepeat)
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
     if key == "e" then 
-        createEnemy("bomber1")
+        createEnemy("tank")
     end 
     if key == "q" then 
         player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
