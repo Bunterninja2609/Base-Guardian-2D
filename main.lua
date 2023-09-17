@@ -134,8 +134,8 @@ function love.load()
             love.graphics.pop()
         end
     
-    particleSystem = love.graphics.newParticleSystem(player.attributes.jet.image, 256)
-    particleSystem:setParticleLifetime(2, 3)
+    particleSystem = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
+    particleSystem:setParticleLifetime(0.1, 0.2)
     end
 
 function movePlayerInJet(dt)
@@ -232,7 +232,6 @@ function createEnemy(type)
     end
     table.insert(enemies, enemy)
 end
-
 function updateEnemies(dt)
     for i, enemy in ipairs(enemies) do
         for j, tile in ipairs(tiles) do
@@ -289,10 +288,7 @@ function updateEnemies(dt)
     
     end
 end
-
-
 function createProjectile(type, x, y, direction, speed, momentum) 
-    
     local projectile = {}
         projectile.direction = direction
         projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * 10, y + math.sin(projectile.direction) * 10, "dynamic")
@@ -300,9 +296,13 @@ function createProjectile(type, x, y, direction, speed, momentum)
         projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
         
         projectile.body:setLinearVelocity(math.cos(projectile.direction) * (speed + momentum), math.sin(projectile.direction) * (speed + momentum))
-        particleSystem:setPosition(projectile.body:getX(), projectile.body:getY())
-        particleSystem:setRotation(projectile.direction)
-        particleSystem:emit(32)
+
+    particleSystem:setSpread(0.5)
+    particleSystem:setSpeed(100 + momentum, 200 + momentum)
+    particleSystem:setPosition(projectile.body:getX(), projectile.body:getY())
+    particleSystem:setDirection(projectile.direction)
+    particleSystem:setSizeVariation(1)
+    particleSystem:emit(32)
 
     table.insert(projectiles, projectile)
 end
@@ -332,11 +332,6 @@ function drawEnemies()
         love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)    
     end
 end
-
-
-
-
-
 
 
 
