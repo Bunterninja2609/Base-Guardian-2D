@@ -133,9 +133,9 @@ function love.load()
         cam.detach = function()
             love.graphics.pop()
         end
-    
-    particleSystem = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
-    particleSystem:setParticleLifetime(0.1, 0.2)
+    particleSystem = {}
+    particleSystem.muzzleFlash = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
+    particleSystem.muzzleFlash:setParticleLifetime(0.05, 0.1)
     end
 
 function movePlayerInJet(dt)
@@ -191,13 +191,12 @@ function movePlayerInJet(dt)
     cam.y = player.body:getY()
     if player.attributes.jet.cooldownTimer <= 0 then
         if love.mouse.isDown(1) then
-            createProjectile("bullet" ,player.body:getX() , player.body:getY() ,player.direction , 100 ,currentSpeed)
+            createProjectile("bullet" ,player.body:getX() , player.body:getY() ,player.direction , 500 ,currentSpeed)
             player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
         end
     else
         player.attributes.jet.cooldownTimer = player.attributes.jet.cooldownTimer - dt
     end
-
 end
 function createEnemy(type)
     local enemyTemplate = enemyStats[type]
@@ -296,13 +295,13 @@ function createProjectile(type, x, y, direction, speed, momentum)
         projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
         
         projectile.body:setLinearVelocity(math.cos(projectile.direction) * (speed + momentum), math.sin(projectile.direction) * (speed + momentum))
-
-    particleSystem:setSpread(0.5)
-    particleSystem:setSpeed(100 + momentum, 200 + momentum)
-    particleSystem:setPosition(projectile.body:getX(), projectile.body:getY())
-    particleSystem:setDirection(projectile.direction)
-    particleSystem:setSizeVariation(1)
-    particleSystem:emit(32)
+    particleSystem.muzzleFlash:setColors(1, 0.3, 0, 1,   1, 1, 0, 1)
+    particleSystem.muzzleFlash:setSpread(0.5)
+    particleSystem.muzzleFlash:setSpeed(100 + momentum, 200 + momentum)
+    particleSystem.muzzleFlash:setPosition(projectile.body:getX(), projectile.body:getY())
+    particleSystem.muzzleFlash:setDirection(projectile.direction)
+    particleSystem.muzzleFlash:setSizeVariation(1)
+    particleSystem.muzzleFlash:emit(32)
 
     table.insert(projectiles, projectile)
 end
@@ -314,14 +313,11 @@ function updateProjectiles(dt)
         end
     end
 end
-
 function drawProjectiles() 
     for i, projectile in ipairs(projectiles) do
         love.graphics.circle("line", projectile.body:getX(), projectile.body:getY(), 1)
     end
 end
-
-
 function drawEnemies()
     for i, enemy in ipairs(enemies) do
         -- draw enemy shadow
@@ -340,12 +336,13 @@ function love.update(dt)
     mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
     updateEnemies(dt)
     updateProjectiles()
-    particleSystem:update(dt)
+    
     if player.attributes.isInJet then
         movePlayerInJet(dt)
     else
         
     end
+    particleSystem.muzzleFlash:update(dt)
     World:update(dt)
 end
 
@@ -364,7 +361,7 @@ function love.draw()
     end
     drawEnemies()
     drawProjectiles()
-    love.graphics.draw(particleSystem, 0 ,0)
+    love.graphics.draw(particleSystem.muzzleFlash, 0 ,0)
     -- draw player jet shadow
     love.graphics.setColor(0, 0, 0, 0.5)
     love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
