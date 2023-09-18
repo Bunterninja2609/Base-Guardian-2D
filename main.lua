@@ -21,13 +21,13 @@ function love.load()
             player.attributes.isInJet = true
             player.attributes.jet = {}
                 player.attributes.jet.speed = 150
-                player.attributes.jet.turningSpeed = 0.1
+                player.attributes.jet.turningSpeed = 0.05
                 player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
                 player.attributes.jet.crosshair = love.graphics.newImage("textures/" .. theme .. "/crosshair.png")
                 player.attributes.jet.scale = 3
                 player.attributes.jet.height = 10
                 player.attributes.jet.WASDamingMode = true
-                player.attributes.jet.cooldown = 0.1
+                player.attributes.jet.cooldown = 0.01
                 player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
     
     enemies = {}
@@ -344,6 +344,7 @@ function updateProjectiles(dt)
                     table.remove(enemies, j)
                     table.remove(projectiles, i)
                     shouldBreak = true
+                    j = j - 1
                 end
                 if shouldBreak then
                     break
@@ -414,12 +415,12 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(particleSystem.muzzleFlash, 0 ,0)
     
-    -- Draw the player jet
+    -- Draw the player jet 
     love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
 
-    love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.direction) * 70, playerY + math.sin(player.direction) * 70, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.direction) * 50, playerY + math.sin(player.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
     love.graphics.setColor(1, 0, 0)
-    love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.wantedDirection) * 70, playerY + math.sin(player.wantedDirection) * 70, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.wantedDirection) * 50, playerY + math.sin(player.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
     -- Draw Enemies
     
     cam:detach()
@@ -434,7 +435,7 @@ function love.keypressed(key, scancode, isrepeat)
     end 
     if key == "e" then 
         for i = 1, 5 do
-            createEnemy("tank")
+            createEnemy("jet2")
     end
     end 
     if key == "q" then 
