@@ -297,11 +297,12 @@ function updateEnemies(dt)
             enemy.reloadTimer = enemy.reloadTimer - dt
         end
     
+        if enemy.health <= 0 then
+            enemy.body:destroy()
+            table.remove(enemies, i)
+        end
     end
-    if enemy.health <= 0 then
-        enemy.body:destroy()
-        table.remove(enemies, i)
-    end
+    
 end
 function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY) 
     local projectile = {}
