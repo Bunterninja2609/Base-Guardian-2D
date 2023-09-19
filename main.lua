@@ -35,6 +35,7 @@ function love.load()
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
             speed = 25,
+            health = 10,
             turningSpeed = 0.05,
             range = 3,
             cooldown = 0.5,
@@ -48,6 +49,7 @@ function love.load()
         jet1 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/jet1.png"),
             speed = 100,
+            health = 10,
             turningSpeed = 0.025,
             range = 10,
             cooldown = 0.2,
@@ -61,6 +63,7 @@ function love.load()
         mobileSurfaceToAir = {
             texture = love.graphics.newImage("textures/" .. theme .. "/antiair.png"),
             speed = 35,
+            health = 10,
             turningSpeed = 0.03,
             range = 30,
             cooldown = 0.1,
@@ -74,6 +77,7 @@ function love.load()
         mortar = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
             speed = 1,
+            health = 10,
             turningSpeed = 1,
             range = 100,
             cooldown = 0.1,
@@ -87,6 +91,7 @@ function love.load()
         jet2 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/player.png"),
             speed = 120,
+            health = 10,
             turningSpeed = 0.015,
             range = 15,
             cooldown = 0.1,
@@ -100,6 +105,7 @@ function love.load()
         bomber1 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/Bomber1.png"),
             speed = 75,
+            health = 10,
             turningSpeed = 0.02,
             range = 1,
             cooldown = 0.1,
@@ -213,6 +219,7 @@ function createEnemy(type)
         enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
         enemy.x = 0
         enemy.y = 0
+        enemy.health = enemyTemplate.health
         enemy.speed = enemyTemplate.speed
         enemy.turningSpeed = enemyTemplate.turningSpeed
         enemy.range = enemyTemplate.range
@@ -325,6 +332,7 @@ end
 function updateProjectiles(dt)
     for i, projectile in ipairs(projectiles) do
         local shouldBreak = false
+        local contacts = projectile.body:getContacts()
         projectile.direction = projectile.body:getAngle()
         projectile.particle.trail:setSpeed(100, 200)
         projectile.particle.trail:setPosition(projectile.body:getX(), projectile.body:getY())
@@ -333,18 +341,17 @@ function updateProjectiles(dt)
         projectile.particle.trail:update(dt)
 
         for j, enemy in ipairs(enemies) do
-            local contacts = projectile.body:getContacts()
+            
 
             for k = 1, #contacts, 1 do
                 local contact = contacts[k]
 
                 if contact:isTouching(projectile.fixture, enemy.fixture) then
                     projectile.body:destroy()
-                    enemy.body:destroy()
-                    table.remove(enemies, j)
+                    enemy.health = enemy.health - 1
                     table.remove(projectiles, i)
                     shouldBreak = true
-                    j = j - 1
+                    
                 end
                 if shouldBreak then
                     break
