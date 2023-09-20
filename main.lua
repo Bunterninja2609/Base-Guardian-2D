@@ -250,9 +250,11 @@ function createEnemy(type)
         enemy.direction = 0 * math.pi
     if enemyTemplate.isOnGround then
         enemy.fixture:setCategory(collisionClass.enemy, collisionClass.ground)
+        enemy.fixture:setMask(collisionClass.air)
         enemy.height = 1
     else
         enemy.fixture:setCategory(collisionClass.enemy, collisionClass.air)
+        enemy.fixture:setMask(collisionClass.ground)
         enemy.height = 10
     end
     table.insert(enemies, enemy)
@@ -261,7 +263,7 @@ function updateEnemies(dt)
     for i, enemy in ipairs(enemies) do
         for j, tower in ipairs(tiles) do
             if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
-                enemy.lockedTarget = player.fixture
+                enemy.lockedTarget = tower.fixture
             end
         end
         local wantedX = enemy.lockedTarget:getBody():getX() - enemy.x
@@ -460,17 +462,31 @@ end
         tower.x = x
         tower.y = y
         tower.health = 100
-        tower.body = love.physics.newBody(World, tower.x, tower.y, "dynamic")
+        tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
         tower.shape = love.physics.newCircleShape(tower.texture:getHeight() / 2)
         tower.fixture = love.physics.newFixture(tower.body, tower.shape)
+        tower.fixture:setCategory(collisionClass.ground)
         tower.isConnected = true
         table.insert(tiles, tower)
     end
     function drawTower()
         for i, tower in ipairs(tiles) do
+            love.graphics.setColor(0, 0, 0, 0.5)
+            love.graphics.draw(tower.texture, tower.layer1, tower.x, tower.y + 1, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+
             love.graphics.setColor(1, 1, 1)
             love.graphics.draw(tower.texture, tower.layer1, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+ 
+            love.graphics.setColor(0, 0, 0, 0.5)
+            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y + 1, player.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+
+            love.graphics.setColor(1, 1, 1)
             love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y, player.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+
+            love.graphics.setColor(0, 0, 0, 0.5)
+            love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y + 1, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+
+            love.graphics.setColor(1, 1, 1)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
         end
     end
