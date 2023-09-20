@@ -259,8 +259,8 @@ function createEnemy(type)
 end
 function updateEnemies(dt)
     for i, enemy in ipairs(enemies) do
-        for j, tile in ipairs(tiles) do
-            if love.physics.getDistance(enemy.fixture, tile.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
+        for j, tower in ipairs(tiles) do
+            if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
                 enemy.lockedTarget = player.fixture
             end
         end
@@ -450,6 +450,32 @@ function drawExplosionParticles()
     end
 end
 
+--towerdefense
+    function createTower(x, y)
+        local tower = {}
+        tower.texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png")
+        tower.layer1 = love.graphics.newQuad(0, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
+        tower.layer2 = love.graphics.newQuad(0 + tower.texture:getWidth() * 1/3, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
+        tower.layer3 = love.graphics.newQuad(0 + tower.texture:getWidth() * 2/3, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
+        tower.x = x
+        tower.y = y
+        tower.health = 100
+        tower.body = love.physics.newBody(World, tower.x, tower.y, "dynamic")
+        tower.shape = love.physics.newCircleShape(tower.texture:getHeight() / 2)
+        tower.fixture = love.physics.newFixture(tower.body, tower.shape)
+        tower.isConnected = true
+        table.insert(tiles, tower)
+    end
+    function drawTower()
+        for i, tower in ipairs(tiles) do
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(tower.texture, tower.layer1, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y, player.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+            love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+        end
+    end
+--
+
 function love.update(dt)
     mouseX = (love.mouse.getX() - love.graphics.getWidth() / 2 ) * worldScale
     mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
@@ -479,6 +505,7 @@ function love.draw()
         end
     end
     drawEnemies()
+    drawTower()
     drawProjectiles()
     
     -- draw player jet shadow
@@ -507,13 +534,16 @@ function love.keypressed(key, scancode, isrepeat)
         fullscreen = not fullscreen
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
-    if key == "e" then 
+    if key == "e" then
         for i = 1, 5 do
-            createEnemy("tank")
+            createEnemy("jet1")
     end
     end 
     if key == "q" then 
         player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
+    end 
+    if key == "space" then 
+        createTower(player.body:getX(), player.body:getY())
     end 
 end
 --Hello World
