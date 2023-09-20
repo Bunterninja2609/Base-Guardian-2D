@@ -231,6 +231,7 @@ function createEnemy(type)
         enemy.x = 0
         enemy.y = 0
         enemy.health = enemyTemplate.health
+        enemy.maxHealth = enemyTemplate.health
         enemy.speed = enemyTemplate.speed
         enemy.turningSpeed = enemyTemplate.turningSpeed
         enemy.range = enemyTemplate.range
@@ -410,9 +411,14 @@ function drawEnemies()
         -- draw enemy shadow
         love.graphics.setColor(0, 0, 0, 0.5)
         love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)  
+
         -- draw enemy
         love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)    
+        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)
+        love.graphics.setColor(1, 0, 0)   
+        love.graphics.rectangle("fill", enemy.x  - enemy.texture:getWidth() / 2, enemy.y - enemy.texture:getHeight() / 2, enemy.texture:getWidth(), 3) 
+        love.graphics.setColor(0, 1, 0)
+        love.graphics.rectangle("fill", enemy.x  - enemy.texture:getWidth() / 2, enemy.y - enemy.texture:getHeight() / 2, enemy.texture:getWidth() * enemy.health / enemy.maxHealth, 3) 
     end
 end
 
