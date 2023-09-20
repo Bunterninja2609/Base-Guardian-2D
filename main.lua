@@ -46,7 +46,7 @@ function love.load()
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
             speed = 25,
-            health = 100,
+            health = 60,
             turningSpeed = 0.05,
             range = 3,
             cooldown = 0.5,
@@ -59,7 +59,7 @@ function love.load()
         },
         jet1 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/jet1.png"),
-            speed = 30,
+            speed = 60,
             health = 10,
             turningSpeed = 0.025,
             range = 10,
@@ -74,7 +74,7 @@ function love.load()
         mobileSurfaceToAir = {
             texture = love.graphics.newImage("textures/" .. theme .. "/antiair.png"),
             speed = 35,
-            health = 10,
+            health = 50,
             turningSpeed = 0.03,
             range = 30,
             cooldown = 0.1,
@@ -88,7 +88,7 @@ function love.load()
         mortar = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
             speed = 1,
-            health = 10,
+            health = 30,
             turningSpeed = 1,
             range = 100,
             cooldown = 0.1,
@@ -102,7 +102,7 @@ function love.load()
         jet2 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/player.png"),
             speed = 120,
-            health = 10,
+            health = 60,
             turningSpeed = 0.015,
             range = 15,
             cooldown = 0.1,
@@ -116,7 +116,7 @@ function love.load()
         bomber1 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/Bomber1.png"),
             speed = 75,
-            health = 10,
+            health = 200,
             turningSpeed = 0.02,
             range = 1,
             cooldown = 0.1,
@@ -343,7 +343,8 @@ function createProjectile(type, x, y, direction, speed, momentum, offsetX, offse
         projectile.particle.trail:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,1 ,0,0,0,0.5)
         projectile.particle.trail:setSpread(0.2)
         projectile.particle.trail:setSpeed(100, 200)
-        projectile.particle.trail:setSizeVariation(1)
+        projectile.particle.trail:setSizes(1, 2)
+        projectile.particle.trail:setSizeVariation(0.5)
 
         projectile.body:setLinearVelocity(math.cos(projectile.direction) * (speed + momentum), math.sin(projectile.direction) * (speed + momentum))
         
@@ -352,6 +353,7 @@ function createProjectile(type, x, y, direction, speed, momentum, offsetX, offse
         particleSystem.muzzleFlash:setSpeed(100 + momentum, 200 + momentum)
         particleSystem.muzzleFlash:setPosition(projectile.body:getX(), projectile.body:getY())
         particleSystem.muzzleFlash:setDirection(projectile.direction)
+        particleSystem.muzzleFlash:setSizes(0.5, 1.5)
         particleSystem.muzzleFlash:setSizeVariation(1)
         particleSystem.muzzleFlash:emit(64)
 
@@ -385,10 +387,10 @@ function updateProjectiles(dt)
                 break
             end
         end
-        
+
         projectile.timer = projectile.timer - dt
         if projectile.timer <= 0 then
-            createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
+            createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 2, 1)
             projectile.body:destroy()
             table.remove(projectiles, i)
         end
@@ -427,9 +429,10 @@ end
 function createExplosionParticles(x, y, strength, time)
     local explosion = {}
     explosion.particle = love.graphics.newParticleSystem(particle1, 2^10)
-    explosion.particle:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,0.5)
+    explosion.particle:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,0.8)
     explosion.particle:setSpread(2 * math.pi)
     explosion.particle:setParticleLifetime(0.0,time)
+    explosion.particle:setSizes(1, 5)
     explosion.particle:setSizeVariation(1)
     explosion.particle:setSpeed(0, 50)
     explosion.particle:moveTo(x, y)
