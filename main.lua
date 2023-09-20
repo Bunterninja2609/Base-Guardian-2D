@@ -5,7 +5,15 @@ function love.load()
     World = love.physics.newWorld(0, 0, true)
     worldScale = 3
     theme = "2023"
+    particle1 = love.graphics.newImage("textures/"..theme.."/particle1.png")
 
+    collisionClass = {
+        air = 1,
+        ground = 2,
+        friendly = 3,
+        enemy = 4,
+        projectile = 5
+    }
     -- Temporary Background
     grassImage = love.graphics.newImage("textures/" .. theme .. "/grass.png")
 
@@ -15,7 +23,7 @@ function love.load()
         player.shape = love.physics.newCircleShape(10)
         player.fixture = love.physics.newFixture(player.body, player.shape)
         player.fixture:setCategory(collisionClass.friendly, collisionClass.air)
-        player.fixture:setMask(collisionClass.ground)
+        player.fixture:setMask(collisionClass.ground, collisionClass.enemy)
         player.direction = 0 * math.pi
         player.wantedDirection = 0 * math.pi
         
@@ -127,13 +135,7 @@ function love.load()
     projectiles = {}
     tiles = {}
     -- collision classes are height: 1, 0; player or enemy: 2, 3; projectile: 4;
-    collisionClass = {
-        air = 0,
-        ground = 1,
-        friendly = 2,
-        enemy = 3,
-        projectile = 4
-    }
+    
     cam = {}
         cam.x = 0
         cam.y = 0
@@ -223,7 +225,7 @@ function createEnemy(type)
     local enemy = {}  
         enemy.texture = enemyTemplate.texture
         enemy.body = love.physics.newBody(World, math.random(-1000, 1000), math.random(-1000, 1000), "dynamic")
-        enemy.shape = love.physics.newCircleShape(5)
+        enemy.shape = love.physics.newCircleShape(enemy.texture:getWidth() / 2)
         enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
         enemy.x = 0
         enemy.y = 0
@@ -366,7 +368,7 @@ function updateProjectiles(dt)
                 if projectile.body:isTouching(enemy.body) then
                     createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 4)
                     projectile.body:destroy()
-                    enemy.health = enemy.health - 10
+                    enemy.health = enemy.health - 1000
                     table.remove(projectiles, i)
                     break
                 end
@@ -397,7 +399,7 @@ end
 
 function createExplosionParticles(x, y, strength)
     local explosion = {}
-    explosion.particle = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 2^20)
+    explosion.particle = love.graphics.newParticleSystem(particle1, 2^20)
     explosion.particle:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,0.5)
     explosion.particle:setSpread(2 * math.pi)
     explosion.particle:setParticleLifetime(0.0,2.0)
