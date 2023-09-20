@@ -23,7 +23,7 @@ function love.load()
         player.shape = love.physics.newCircleShape(10)
         player.fixture = love.physics.newFixture(player.body, player.shape)
         player.fixture:setCategory(collisionClass.friendly, collisionClass.air)
-        player.fixture:setMask(collisionClass.ground, collisionClass.enemy)
+        player.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
         player.direction = 0 * math.pi
         player.wantedDirection = 0 * math.pi
         
@@ -388,8 +388,17 @@ function updateProjectiles(dt)
                 table.remove(projectiles, i)
                 break
             end
+            for j, tower in ipairs(tiles) do
+                if projectile.body:isTouching(tower.body) then
+                    createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
+                    projectile.body:destroy()
+                    tower.health = tower.health - 10
+                    table.remove(projectiles, i)
+                    break
+                end
+            end
+        
         end
-
         projectile.timer = projectile.timer - dt
         if projectile.timer <= 0 then
             createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 2, 1)
@@ -465,7 +474,7 @@ end
         tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
         tower.shape = love.physics.newCircleShape(tower.texture:getHeight() / 2)
         tower.fixture = love.physics.newFixture(tower.body, tower.shape)
-        tower.fixture:setCategory(collisionClass.ground)
+        tower.fixture:setCategory(collisionClass.ground, collisionClass.friendly)
         tower.isConnected = true
         table.insert(tiles, tower)
     end
@@ -552,7 +561,7 @@ function love.keypressed(key, scancode, isrepeat)
     end 
     if key == "e" then
         for i = 1, 5 do
-            createEnemy("jet1")
+            createEnemy("tank")
     end
     end 
     if key == "q" then 
