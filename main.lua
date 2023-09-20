@@ -385,6 +385,7 @@ function updateProjectiles(dt)
                 break
             end
         end
+        
         projectile.timer = projectile.timer - dt
         if projectile.timer <= 0 then
             createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
