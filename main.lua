@@ -30,6 +30,7 @@ function love.load()
         player.attributes = {}
             player.attributes.isInJet = true
             player.attributes.jet = {}
+                player.attributes.jet.health = 200
                 player.attributes.jet.speed = 150
                 player.attributes.jet.turningSpeed = 0.05
                 player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
@@ -37,7 +38,7 @@ function love.load()
                 player.attributes.jet.scale = 3
                 player.attributes.jet.height = 10
                 player.attributes.jet.WASDamingMode = true
-                player.attributes.jet.cooldown = 0.2
+                player.attributes.jet.cooldown = 0.1
                 player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
     
     enemies = {}
@@ -212,7 +213,7 @@ function movePlayerInJet(dt)
     cam.y = player.body:getY()
     if player.attributes.jet.cooldownTimer <= 0 then
         if love.mouse.isDown(1) then
-            createProjectile("bullet" ,player.body:getX() , player.body:getY() ,player.direction , 500 ,currentSpeed, 15, 15, true)
+            createProjectile("bullet" ,player.body:getX() , player.body:getY() ,player.direction , 500 ,currentSpeed, 15, 15, true, 3)
             player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
         end
     else
@@ -295,7 +296,7 @@ function updateEnemies(dt)
         
         if enemy.reloadTimer <= 0 then
             if enemy.cooldownTimer < 0 then
-                createProjectile(enemy.projectile, enemy.x, enemy.y, enemy.direction, 150, currentSpeed, 7, 7)
+                createProjectile(enemy.projectile, enemy.x, enemy.y, enemy.direction, 150, currentSpeed, 7, 7, false, enemy.range)
                 enemy.cooldownTimer = enemy.cooldown
                 enemy.barrageCounter = enemy.barrageCounter - 1
                 if enemy.barrageCounter <= 0 then
@@ -310,16 +311,17 @@ function updateEnemies(dt)
         end
     
         if enemy.health <= 0 then
-            createExplosionParticles(enemy.body:getX(), enemy.body:getY(), 9)
+            createExplosionParticles(enemy.body:getX(), enemy.body:getY(), 8, 3)
             enemy.body:destroy()
             table.remove(enemies, i)
         end
     end
     
 end
-function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY, isShotByPlayer) 
+function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY, isShotByPlayer, range) 
     local projectile = {}
         projectile.direction = direction
+        projectile.timer = range
         projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * offsetX, y + math.sin(projectile.direction) * offsetY, "dynamic")
         projectile.body:setAngularDamping(50)
         projectile.image = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
@@ -328,9 +330,9 @@ function createProjectile(type, x, y, direction, speed, momentum, offsetX, offse
         projectile.body:setAngle(projectile.direction)
         projectile.fixture:setCategory(collisionClass.projectile)
         if not isShotByPlayer then
-            projectile.fixture:setMask(collisionClass.projectile, collisionClass.enemy)
+            projectile.fixture:setMask(collisionClass.projectile, collisionClass.enemy, collisionClass.ground, collisionClass.air)
         else
-            projectile.fixture:setMask(collisionClass.projectile, collisionClass.friendly)
+            projectile.fixture:setMask(collisionClass.projectile, collisionClass.friendly, collisionClass.ground, collisionClass.air)
         end
         projectile.isShotByPlayer = isShotByPlayer
 
@@ -366,23 +368,40 @@ function updateProjectiles(dt)
         if projectile.isShotByPlayer then
             for j, enemy in ipairs(enemies) do
                 if projectile.body:isTouching(enemy.body) then
-                    createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 4)
+                    createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
                     projectile.body:destroy()
-                    enemy.health = enemy.health - 1000
+                    enemy.health = enemy.health - 10
                     table.remove(projectiles, i)
                     break
                 end
             end
         else
-
+            if projectile.body:isTouching(player.body) then
+                createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 4, 2)
+                projectile.body:destroy()
+                player.attributes.jet.health = player.attributes.jet.health - 10
+                table.remove(projectiles, i)
+                break
+            end
+        end
+        projectile.timer = projectile.timer - dt
+        if projectile.timer <= 0 then
+            createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
+            projectile.body:destroy()
+            table.remove(projectiles, i)
         end
     end
 end
 function drawProjectiles() 
     for i, projectile in ipairs(projectiles) do
+        love.graphics.setColor(0, 0, 0, 0.3)
+        love.graphics.draw(projectile.particle.trail, 0 ,0 + projectile.timer * 10)
         
+        love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY()  + projectile.timer * 10, projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
+
+
+        love.graphics.setColor(1, 1, 1, 1)
         love.graphics.draw(projectile.particle.trail, 0 ,0)
-        love.graphics.circle("line", projectile.body:getX(), projectile.body:getY(), 1)
         love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY(), projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
     end
 end
@@ -397,12 +416,12 @@ function drawEnemies()
     end
 end
 
-function createExplosionParticles(x, y, strength)
+function createExplosionParticles(x, y, strength, time)
     local explosion = {}
-    explosion.particle = love.graphics.newParticleSystem(particle1, 2^20)
+    explosion.particle = love.graphics.newParticleSystem(particle1, 2^10)
     explosion.particle:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,0.5)
     explosion.particle:setSpread(2 * math.pi)
-    explosion.particle:setParticleLifetime(0.0,2.0)
+    explosion.particle:setParticleLifetime(0.0,time)
     explosion.particle:setSizeVariation(1)
     explosion.particle:setSpeed(0, 50)
     explosion.particle:moveTo(x, y)
