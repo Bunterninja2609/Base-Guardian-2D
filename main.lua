@@ -517,6 +517,7 @@ end
         tower.maxHealth = 100
         tower.health = 100
         tower.direction = 0 * math.pi
+        tower.target = player.jet.fixture
         tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
         tower.shape = love.physics.newCircleShape(tower.texture:getHeight() / 2)
         tower.fixture = love.physics.newFixture(tower.body, tower.shape)
@@ -526,21 +527,13 @@ end
     end
     function updateTower()
         for i, tower in ipairs(tiles) do
-            local hasTarget = false
-            local target
             for j, enemy in ipairs(enemies) do
-                if j == 1 then
-                    target = enemy.fixture
-                    hasTarget = true
-                end
-                if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, target) then
-                    target = enemy.fixture
+                if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(enemy.fixture, tower.target) then
+                    tower.target = enemy.fixture
                 end
             end
-            if hasTarget then
-                tower.direction = math.atan2(target:getBody():getX() - tower.x, target:getBody():getY() - tower.y)
-            end
-            createProjectile("bullet", tower.x, tower.y, tower.direction, 100, 0, 1, 1, true, 10)
+                tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)
+            createProjectile("bullet", tower.x, tower.y, tower.direction, 100, 0, 1, 1, true, 300)
             if tower.health <= 0 then
                 createExplosionParticles(tower.x, tower.y, 10, 1)
                 tower.body:destroy()
@@ -674,10 +667,7 @@ function love.keypressed(key, scancode, isrepeat)
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
     if key == "e" then
-        for i = 1, 2 do
             createEnemy("tank")
-            createEnemy("mobileSurfaceToAir")  
-        end
     end 
     if key == "q" then 
         player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
