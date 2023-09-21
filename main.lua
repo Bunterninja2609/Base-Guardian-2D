@@ -59,10 +59,10 @@ function love.load()
         },
         jet1 = {
             texture = love.graphics.newImage("textures/" .. theme .. "/jet1.png"),
-            speed = 60,
+            speed = 30,
             health = 10,
             turningSpeed = 0.025,
-            range = 10,
+            range = 150,
             cooldown = 0.2,
             reloadTime = 3,
             barrage = 6,
@@ -73,10 +73,10 @@ function love.load()
         },
         mobileSurfaceToAir = {
             texture = love.graphics.newImage("textures/" .. theme .. "/antiair.png"),
-            speed = 35,
+            speed = 40,
             health = 50,
             turningSpeed = 0.03,
-            range = 30,
+            range = 150,
             cooldown = 0.1,
             reloadTime = 2,
             barrage = 10,
@@ -90,7 +90,7 @@ function love.load()
             speed = 1,
             health = 30,
             turningSpeed = 1,
-            range = 100,
+            range = 1000,
             cooldown = 0.1,
             reloadTime = 5,
             barrage = 3,
@@ -104,7 +104,7 @@ function love.load()
             speed = 120,
             health = 60,
             turningSpeed = 0.015,
-            range = 15,
+            range = 175,
             cooldown = 0.1,
             reloadTime = 3,
             barrage = 30,
@@ -213,7 +213,7 @@ function movePlayerInJet(dt)
     cam.y = player.body:getY()
     if player.attributes.jet.cooldownTimer <= 0 then
         if love.mouse.isDown(1) then
-            createProjectile("bullet" ,player.body:getX() , player.body:getY() ,player.direction , 500 ,currentSpeed, 15, 15, true, 3)
+            createProjectile("bullet" ,player.body:getX() , player.body:getY() ,player.direction , 500 ,currentSpeed, 15, 15, true, 100)
             player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
         end
     else
@@ -427,9 +427,9 @@ end
 function drawProjectiles() 
     for i, projectile in ipairs(projectiles) do
         love.graphics.setColor(0, 0, 0, 0.3)
-        love.graphics.draw(projectile.particle.trail, 0 ,0 + projectile.timer * 10)
+        love.graphics.draw(projectile.particle.trail, 0 ,0 + projectile.timer / 10)
         
-        love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY()  + projectile.timer * 10, projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
+        love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY()  + projectile.timer / 10, projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
 
 
         love.graphics.setColor(1, 1, 1, 1)
@@ -579,7 +579,8 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "e" then
         for i = 1, 5 do
             createEnemy("tank")
-    end
+            createEnemy("mobileSurfaceToAir")
+        end
     end 
     if key == "q" then 
         player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
