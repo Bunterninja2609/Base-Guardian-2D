@@ -19,13 +19,14 @@ function love.load()
 
     
     player = {}
-        player.body = love.physics.newBody(World, 0, 300, "dynamic")
-        player.shape = love.physics.newCircleShape(10)
-        player.fixture = love.physics.newFixture(player.body, player.shape)
-        player.fixture:setCategory(collisionClass.friendly, collisionClass.air)
-        player.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
-        player.direction = 0 * math.pi
-        player.wantedDirection = 0 * math.pi
+        player.jet = {}
+        player.jet.body = love.physics.newBody(World, 0, 300, "dynamic")
+        player.jet.shape = love.physics.newCircleShape(10)
+        player.jet.fixture = love.physics.newFixture(player.jet.body, player.jet.shape)
+        player.jet.fixture:setCategory(collisionClass.friendly, collisionClass.air)
+        player.jet.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
+        player.jet.direction = 0 * math.pi
+        player.jet.wantedDirection = 0 * math.pi
         
         player.attributes = {}
             player.attributes.isInJet = true
@@ -180,19 +181,19 @@ function movePlayerInJet(dt)
         wantedY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
     end
 
-    local currentVelocityX, currentVelocityY = player.body:getLinearVelocity()
+    local currentVelocityX, currentVelocityY = player.jet.body:getLinearVelocity()
     local currentSpeed = math.sqrt(currentVelocityX^2 + currentVelocityY^2)
 
     if currentSpeed > 0 then
         local currentDirection = math.atan2(currentVelocityY, currentVelocityX)
-        player.direction = currentDirection
+        player.jet.direction = currentDirection
     end
 
     if wantedX ~= 0 or wantedY ~= 0 then
-        player.wantedDirection = math.atan2(wantedY, wantedX)
+        player.jet.wantedDirection = math.atan2(wantedY, wantedX)
 
         -- Calculate the difference between the wanted direction and player's current direction
-        local directionDifference = player.wantedDirection - player.direction
+        local directionDifference = player.jet.wantedDirection - player.jet.direction
 
         -- Ensure smooth turning within [-pi, pi] range
         if directionDifference > math.pi then
@@ -202,18 +203,23 @@ function movePlayerInJet(dt)
         end
 
         -- Apply smooth turning
-        player.direction = player.direction + directionDifference * player.attributes.jet.turningSpeed
-        player.x = player.fixture:getBody():getX()
-        player.y = player.fixture:getBody():getY()
+        player.jet.direction = player.jet.direction + directionDifference * player.attributes.jet.turningSpeed
+        player.jet.x = player.jet.fixture:getBody():getX()
+        player.jet.y = player.jet.fixture:getBody():getY()
+
+        if player.attributes.jet.health <= 0 then
+            createExplosionParticles(player.jet.x, player.jet.y, 12, 5)
+            player.attributes.isInJet = false
+        end
     end
 
-    player.body:setLinearVelocity(math.cos(player.direction) * player.attributes.jet.speed, math.sin(player.direction) * player.attributes.jet.speed)
+    player.jet.body:setLinearVelocity(math.cos(player.jet.direction) * player.attributes.jet.speed, math.sin(player.jet.direction) * player.attributes.jet.speed)
 
-    cam.x = player.body:getX()
-    cam.y = player.body:getY()
+    cam.x = player.jet.body:getX()
+    cam.y = player.jet.body:getY()
     if player.attributes.jet.cooldownTimer <= 0 then
         if love.mouse.isDown(1) then
-            createProjectile("bullet" ,player.body:getX() , player.body:getY() ,player.direction , 500 ,currentSpeed, 15, 15, true, 100)
+            createProjectile("bullet" ,player.jet.body:getX() , player.jet.body:getY() ,player.jet.direction , 500 ,currentSpeed, 15, 15, true, 100)
             player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
         end
     else
@@ -268,9 +274,9 @@ function updateEnemies(dt)
                 end
             end
         elseif enemy.target == "air" then
-            enemy.lockedTarget = player.fixture
+            enemy.lockedTarget = player.jet.fixture
         elseif enemy.target == "optional" then
-            enemy.lockedTarget = player.fixture
+            enemy.lockedTarget = player.jet.fixture
             for j, tower in ipairs(tiles) do
                 if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
                     enemy.lockedTarget = tower.fixture
@@ -398,7 +404,7 @@ function updateProjectiles(dt)
                 end
             end
         else
-            if projectile.body:isTouching(player.body) then
+            if projectile.body:isTouching(player.jet.body) then
                 createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 4, 2)
                 projectile.body:destroy()
                 player.attributes.jet.health = player.attributes.jet.health - 10
@@ -416,7 +422,7 @@ function updateProjectiles(dt)
             end
         
         end
-        projectile.timer = projectile.timer - dt
+        projectile.timer = projectile.timer - dt * 20
         if projectile.timer <= 0 and not projectile.body:isDestroyed() then
             createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 2, 1)
             projectile.body:destroy()
@@ -504,10 +510,10 @@ end
             love.graphics.draw(tower.texture, tower.layer1, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
  
             love.graphics.setColor(0, 0, 0, 0.5)
-            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y + 1, player.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y + 1, player.jet.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
             love.graphics.setColor(1, 1, 1)
-            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y, player.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y, player.jet.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
             love.graphics.setColor(0, 0, 0, 0.5)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y + 1, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
@@ -538,7 +544,7 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     cam:attach()
 
-    local playerX, playerY = player.body:getX(), player.body:getY()
+    local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
     
     -- Draw temporary Background
     for i = 0, 20, 1 do
@@ -552,18 +558,18 @@ function love.draw()
     
     -- draw player jet shadow
     love.graphics.setColor(0, 0, 0, 0.5)
-    love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     -- Draw muzzle flash
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(particleSystem.muzzleFlash, 0 ,0)
     
     -- Draw the player jet 
-    love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
     drawExplosionParticles()
 
-    love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.direction) * 50, playerY + math.sin(player.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.direction) * 50, playerY + math.sin(player.jet.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
     love.graphics.setColor(1, 0, 0)
-    love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.wantedDirection) * 50, playerY + math.sin(player.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+    love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
     -- Draw Enemies
     
     cam:detach()
@@ -586,7 +592,7 @@ function love.keypressed(key, scancode, isrepeat)
         player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
     end 
     if key == "space" then 
-        createTower(player.body:getX(), player.body:getY())
+        createTower(player.jet.body:getX(), player.jet.body:getY())
     end 
 end
 --Hello World
