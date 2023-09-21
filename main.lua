@@ -160,7 +160,6 @@ function love.load()
     explosions = {}
 end
 
-
 function movePlayerInJet(dt)
     local wantedY = 0
     local wantedX = 0
@@ -226,265 +225,287 @@ function movePlayerInJet(dt)
         player.attributes.jet.cooldownTimer = player.attributes.jet.cooldownTimer - dt
     end
 end
-function createEnemy(type)
-    local enemyTemplate = enemyStats[type]
 
-    local enemy = {}  
-        enemy.texture = enemyTemplate.texture
-        enemy.body = love.physics.newBody(World, math.random(-1000, 1000), math.random(-1000, 1000), "dynamic")
-        enemy.shape = love.physics.newCircleShape(enemy.texture:getWidth() / 2)
-        enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
-        enemy.x = 0
-        enemy.y = 0
-        enemy.health = enemyTemplate.health
-        enemy.maxHealth = enemyTemplate.health
-        enemy.speed = enemyTemplate.speed
-        enemy.turningSpeed = enemyTemplate.turningSpeed
-        enemy.range = enemyTemplate.range
-        enemy.cooldown = enemyTemplate.cooldown
-        enemy.cooldownTimer = enemy.cooldown
+--enemies--
+    function createEnemy(type)
+        local enemyTemplate = enemyStats[type]
 
-        enemy.reloadTime = enemyTemplate.reloadTime
-        enemy.reloadTimer = enemy.reloadTime
+        local enemy = {}  
+            enemy.texture = enemyTemplate.texture
+            enemy.body = love.physics.newBody(World, math.random(-1000, 1000), math.random(-1000, 1000), "dynamic")
+            enemy.shape = love.physics.newCircleShape(enemy.texture:getWidth() / 2)
+            enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
+            enemy.x = 0
+            enemy.y = 0
+            enemy.health = enemyTemplate.health
+            enemy.maxHealth = enemyTemplate.health
+            enemy.speed = enemyTemplate.speed
+            enemy.turningSpeed = enemyTemplate.turningSpeed
+            enemy.range = enemyTemplate.range
+            enemy.cooldown = enemyTemplate.cooldown
+            enemy.cooldownTimer = enemy.cooldown
 
-        enemy.barrage = enemyTemplate.barrage
-        enemy.barrageCounter = enemy.barrage
+            enemy.reloadTime = enemyTemplate.reloadTime
+            enemy.reloadTimer = enemy.reloadTime
 
-        enemy.target = enemyTemplate.target
-        enemy.projectile = enemyTemplate.projectile
-        enemy.lockedTarget = base.fixture
-        enemy.direction = 0 * math.pi
-    if enemyTemplate.isOnGround then
-        enemy.fixture:setCategory(collisionClass.enemy, collisionClass.ground)
-        enemy.fixture:setMask(collisionClass.air)
-        enemy.height = 1
-    else
-        enemy.fixture:setCategory(collisionClass.enemy, collisionClass.air)
-        enemy.fixture:setMask(collisionClass.ground)
-        enemy.height = 10
-    end
-    table.insert(enemies, enemy)
-end
-function updateEnemies(dt)
-    for i, enemy in ipairs(enemies) do
-        if enemy.target == "ground" then    
-            for j, tower in ipairs(tiles) do
-                if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
-                    enemy.lockedTarget = tower.fixture
-                end
-            end
-        elseif enemy.target == "air" then
-            enemy.lockedTarget = player.jet.fixture
-        elseif enemy.target == "optional" then
-            enemy.lockedTarget = player.jet.fixture
-            for j, tower in ipairs(tiles) do
-                if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
-                    enemy.lockedTarget = tower.fixture
-                end
-            end
-        end
+            enemy.barrage = enemyTemplate.barrage
+            enemy.barrageCounter = enemy.barrage
 
-
-        local wantedX = enemy.lockedTarget:getBody():getX() - enemy.x
-        local wantedY = enemy.lockedTarget:getBody():getY() - enemy.y
-        local currentVelocityX, currentVelocityY = enemy.body:getLinearVelocity()
-        local currentSpeed = math.sqrt(currentVelocityX^2 + currentVelocityY^2)
-        local directionDifference = 0
-
-        if currentSpeed > 0 then
-            local currentDirection = math.atan2(currentVelocityY, currentVelocityX)
-            enemy.direction = currentDirection
-        end
-
-        if wantedX ~= 0 or wantedY ~= 0 then
-            local wantedDirection = math.atan2(wantedY, wantedX)
-
-            -- Calculate the difference between the wanted direction and player's current direction
-            directionDifference = wantedDirection - enemy.direction
-
-            -- Ensure smooth turning within [-pi, pi] range
-            if directionDifference > math.pi then
-                directionDifference = directionDifference - 2 * math.pi
-            elseif directionDifference < -math.pi then
-                directionDifference = directionDifference + 2 * math.pi
-            end
-        end
-        local wantedDirection = math.atan2(wantedY, wantedX)
-        enemy.direction = enemy.direction + directionDifference * enemy.turningSpeed
-        if love.physics.getDistance(enemy.fixture, enemy.lockedTarget) > enemy.range then
-            enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
+            enemy.target = enemyTemplate.target
+            enemy.projectile = enemyTemplate.projectile
+            enemy.lockedTarget = base.fixture
+            enemy.direction = 0 * math.pi
+        if enemyTemplate.isOnGround then
+            enemy.fixture:setCategory(collisionClass.enemy, collisionClass.ground)
+            enemy.fixture:setMask(collisionClass.air)
+            enemy.height = 1
         else
-            enemy.body:setLinearVelocity(0, 0)
+            enemy.fixture:setCategory(collisionClass.enemy, collisionClass.air)
+            enemy.fixture:setMask(collisionClass.ground)
+            enemy.height = 10
         end
-        enemy.x = enemy.body:getX()
-        enemy.y = enemy.body:getY()
-        
-        
-        if enemy.reloadTimer <= 0 then
-            if enemy.cooldownTimer < 0 then
-                createProjectile(enemy.projectile, enemy.x, enemy.y, enemy.direction, 150, currentSpeed, 7, 7, false, enemy.range)
-                enemy.cooldownTimer = enemy.cooldown
-                enemy.barrageCounter = enemy.barrageCounter - 1
-                if enemy.barrageCounter <= 0 then
-                    enemy.reloadTimer = enemy.reloadTime
+        table.insert(enemies, enemy)
+    end
+    function updateEnemies(dt)
+        for i, enemy in ipairs(enemies) do
+            enemy.lockedTarget = player.jet.fixture
+            if enemy.target == "ground" then    
+                for j, tower in ipairs(tiles) do
+                    if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
+                        enemy.lockedTarget = tower.fixture
+                    end
+                end
+                if love.physics.getDistance(enemy.fixture, base.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget)  or #tiles <= 0 then
+                    enemy.lockedTarget = base.fixture
+                end
+
+            elseif enemy.target == "air" then
+                enemy.lockedTarget = player.jet.fixture
+
+            elseif enemy.target == "optional" then
+                enemy.lockedTarget = player.jet.fixture
+                for j, tower in ipairs(tiles) do
+                    if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
+                        enemy.lockedTarget = tower.fixture
+                    end
+                end
+                if love.physics.getDistance(enemy.fixture, base.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) or #tiles <= 0 then
+                    enemy.lockedTarget = base.fixture
+                end
+                if love.physics.getDistance(enemy.fixture, player.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
+                    enemy.lockedTarget = player.fixture
+                end
+
+            end
+            
+
+
+            local wantedX = enemy.lockedTarget:getBody():getX() - enemy.x
+            local wantedY = enemy.lockedTarget:getBody():getY() - enemy.y
+            local currentVelocityX, currentVelocityY = enemy.body:getLinearVelocity()
+            local currentSpeed = math.sqrt(currentVelocityX^2 + currentVelocityY^2)
+            local directionDifference = 0
+
+            if currentSpeed > 0 then
+                local currentDirection = math.atan2(currentVelocityY, currentVelocityX)
+                enemy.direction = currentDirection
+            end
+
+            if wantedX ~= 0 or wantedY ~= 0 then
+                local wantedDirection = math.atan2(wantedY, wantedX)
+
+                -- Calculate the difference between the wanted direction and player's current direction
+                directionDifference = wantedDirection - enemy.direction
+
+                -- Ensure smooth turning within [-pi, pi] range
+                if directionDifference > math.pi then
+                    directionDifference = directionDifference - 2 * math.pi
+                elseif directionDifference < -math.pi then
+                    directionDifference = directionDifference + 2 * math.pi
+                end
+            end
+            local wantedDirection = math.atan2(wantedY, wantedX)
+            enemy.direction = enemy.direction + directionDifference * enemy.turningSpeed
+            if love.physics.getDistance(enemy.fixture, enemy.lockedTarget) > enemy.range then
+                enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
+            else
+                enemy.body:setLinearVelocity(0, 0)
+            end
+            enemy.x = enemy.body:getX()
+            enemy.y = enemy.body:getY()
+            
+            
+            if enemy.reloadTimer <= 0 then
+                if enemy.cooldownTimer < 0 then
+                    createProjectile(enemy.projectile, enemy.x, enemy.y, enemy.direction, 150, currentSpeed, 7, 7, false, enemy.range)
+                    enemy.cooldownTimer = enemy.cooldown
+                    enemy.barrageCounter = enemy.barrageCounter - 1
+                    if enemy.barrageCounter <= 0 then
+                        enemy.reloadTimer = enemy.reloadTime
+                    end
+                else
+                    enemy.cooldownTimer = enemy.cooldownTimer - dt
                 end
             else
-                enemy.cooldownTimer = enemy.cooldownTimer - dt
+                enemy.barrageCounter = enemy.barrage
+                enemy.reloadTimer = enemy.reloadTimer - dt
             end
-        else
-            enemy.barrageCounter = enemy.barrage
-            enemy.reloadTimer = enemy.reloadTimer - dt
+        
+            if enemy.health <= 0 then
+                createExplosionParticles(enemy.body:getX(), enemy.body:getY(), 8, 3)
+                enemy.body:destroy()
+                table.remove(enemies, i)
+            end
         end
-    
-        if enemy.health <= 0 then
-            createExplosionParticles(enemy.body:getX(), enemy.body:getY(), 8, 3)
-            enemy.body:destroy()
-            table.remove(enemies, i)
+        
+    end
+    function drawEnemies()
+        for i, enemy in ipairs(enemies) do
+            -- draw enemy shadow
+            love.graphics.setColor(0, 0, 0, 0.5)
+            love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)  
+
+            -- draw enemy
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)    
+            love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)
+            love.graphics.setColor(1, 0, 0)   
+            love.graphics.rectangle("fill", enemy.x  - enemy.texture:getWidth() / 2, enemy.y - enemy.texture:getHeight() / 2, enemy.texture:getWidth(), 3) 
+            love.graphics.setColor(0, 1, 0)
+            love.graphics.rectangle("fill", enemy.x  - enemy.texture:getWidth() / 2, enemy.y - enemy.texture:getHeight() / 2, enemy.texture:getWidth() * enemy.health / enemy.maxHealth, 3) 
         end
     end
-    
-end
-function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY, isShotByPlayer, range) 
-    local projectile = {}
-        projectile.direction = direction
-        projectile.timer = range
-        projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * offsetX, y + math.sin(projectile.direction) * offsetY, "dynamic")
-        projectile.body:setAngularDamping(50)
-        projectile.image = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
-        projectile.shape = love.physics.newCircleShape(1)
-        projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
-        projectile.body:setAngle(projectile.direction)
-        projectile.fixture:setCategory(collisionClass.projectile)
-        if not isShotByPlayer then
-            projectile.fixture:setMask(collisionClass.projectile, collisionClass.enemy, collisionClass.ground, collisionClass.air)
-        else
-            projectile.fixture:setMask(collisionClass.projectile, collisionClass.friendly, collisionClass.ground, collisionClass.air)
-        end
-        projectile.isShotByPlayer = isShotByPlayer
+--///////--
 
-        projectile.particle = {}
-        projectile.particle.trail = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
-        projectile.particle.trail:setParticleLifetime(0, 0.5)
-        projectile.particle.trail:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,1 ,0,0,0,0.5)
-        projectile.particle.trail:setSpread(0.2)
-        projectile.particle.trail:setSpeed(100, 200)
-        projectile.particle.trail:setSizes(1, 2)
-        projectile.particle.trail:setSizeVariation(0.5)
+--projectiles--
+    function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY, isShotByPlayer, range) 
+        local projectile = {}
+            projectile.direction = direction
+            projectile.timer = range
+            projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * offsetX, y + math.sin(projectile.direction) * offsetY, "dynamic")
+            projectile.body:setAngularDamping(50)
+            projectile.image = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
+            projectile.shape = love.physics.newCircleShape(1)
+            projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
+            projectile.body:setAngle(projectile.direction)
+            projectile.fixture:setCategory(collisionClass.projectile)
+            if not isShotByPlayer then
+                projectile.fixture:setMask(collisionClass.projectile, collisionClass.enemy, collisionClass.ground, collisionClass.air)
+            else
+                projectile.fixture:setMask(collisionClass.projectile, collisionClass.friendly, collisionClass.ground, collisionClass.air)
+            end
+            projectile.isShotByPlayer = isShotByPlayer
 
-        projectile.body:setLinearVelocity(math.cos(projectile.direction) * (speed + momentum), math.sin(projectile.direction) * (speed + momentum))
-        
-        particleSystem.muzzleFlash:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,1)
-        particleSystem.muzzleFlash:setSpread(0.5)
-        particleSystem.muzzleFlash:setSpeed(100 + momentum, 200 + momentum)
-        particleSystem.muzzleFlash:setPosition(projectile.body:getX(), projectile.body:getY())
-        particleSystem.muzzleFlash:setDirection(projectile.direction)
-        particleSystem.muzzleFlash:setSizes(0.5, 1.5)
-        particleSystem.muzzleFlash:setSizeVariation(1)
-        particleSystem.muzzleFlash:emit(64)
+            projectile.particle = {}
+            projectile.particle.trail = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
+            projectile.particle.trail:setParticleLifetime(0, 0.5)
+            projectile.particle.trail:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,1 ,0,0,0,0.5)
+            projectile.particle.trail:setSpread(0.2)
+            projectile.particle.trail:setSpeed(100, 200)
+            projectile.particle.trail:setSizes(1, 2)
+            projectile.particle.trail:setSizeVariation(0.5)
 
-    table.insert(projectiles, projectile)
-end
-function updateProjectiles(dt)
-    for i, projectile in ipairs(projectiles) do
-        local shouldBreak = false
-        projectile.direction = projectile.body:getAngle()
-        projectile.particle.trail:setSpeed(100, 200)
-        projectile.particle.trail:setPosition(projectile.body:getX(), projectile.body:getY())
-        projectile.particle.trail:setDirection(projectile.direction)
-        projectile.particle.trail:emit(8)
-        projectile.particle.trail:update(dt)
-        if projectile.isShotByPlayer then
-            for j, enemy in ipairs(enemies) do
-                if projectile.body:isTouching(enemy.body) then
-                    createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
+            projectile.body:setLinearVelocity(math.cos(projectile.direction) * (speed + momentum), math.sin(projectile.direction) * (speed + momentum))
+            
+            particleSystem.muzzleFlash:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,1)
+            particleSystem.muzzleFlash:setSpread(0.5)
+            particleSystem.muzzleFlash:setSpeed(100 + momentum, 200 + momentum)
+            particleSystem.muzzleFlash:setPosition(projectile.body:getX(), projectile.body:getY())
+            particleSystem.muzzleFlash:setDirection(projectile.direction)
+            particleSystem.muzzleFlash:setSizes(0.5, 1.5)
+            particleSystem.muzzleFlash:setSizeVariation(1)
+            particleSystem.muzzleFlash:emit(64)
+
+        table.insert(projectiles, projectile)
+    end
+    function updateProjectiles(dt)
+        for i, projectile in ipairs(projectiles) do
+            local shouldBreak = false
+            projectile.direction = projectile.body:getAngle()
+            projectile.particle.trail:setSpeed(100, 200)
+            projectile.particle.trail:setPosition(projectile.body:getX(), projectile.body:getY())
+            projectile.particle.trail:setDirection(projectile.direction)
+            projectile.particle.trail:emit(8)
+            projectile.particle.trail:update(dt)
+            if projectile.isShotByPlayer then
+                for j, enemy in ipairs(enemies) do
+                    if projectile.body:isTouching(enemy.body) then
+                        createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
+                        projectile.body:destroy()
+                        enemy.health = enemy.health - 10
+                        table.remove(projectiles, i)
+                        break
+                    end
+                end
+            else
+                if projectile.body:isTouching(player.jet.body) then
+                    createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 4, 2)
                     projectile.body:destroy()
-                    enemy.health = enemy.health - 10
+                    player.attributes.jet.health = player.attributes.jet.health - 10
                     table.remove(projectiles, i)
                     break
                 end
+                for j, tower in ipairs(tiles) do
+                    if projectile.body:isTouching(tower.body) then
+                        createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
+                        projectile.body:destroy()
+                        tower.health = tower.health - 100
+                        table.remove(projectiles, i)
+                        break
+                    end
+                end
+            
             end
-        else
-            if projectile.body:isTouching(player.jet.body) then
-                createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 4, 2)
+            projectile.timer = projectile.timer - dt * 20
+            if projectile.timer <= 0 and not projectile.body:isDestroyed() then
+                createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 2, 1)
                 projectile.body:destroy()
-                player.attributes.jet.health = player.attributes.jet.health - 10
                 table.remove(projectiles, i)
-                break
             end
-            for j, tower in ipairs(tiles) do
-                if projectile.body:isTouching(tower.body) then
-                    createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
-                    projectile.body:destroy()
-                    tower.health = tower.health - 10
-                    table.remove(projectiles, i)
-                    break
-                end
-            end
-        
-        end
-        projectile.timer = projectile.timer - dt * 20
-        if projectile.timer <= 0 and not projectile.body:isDestroyed() then
-            createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 2, 1)
-            projectile.body:destroy()
-            table.remove(projectiles, i)
         end
     end
-end
-function drawProjectiles() 
-    for i, projectile in ipairs(projectiles) do
-        love.graphics.setColor(0, 0, 0, 0.3)
-        love.graphics.draw(projectile.particle.trail, 0 ,0 + projectile.timer / 10)
-        
-        love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY()  + projectile.timer / 10, projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
+    function drawProjectiles() 
+        for i, projectile in ipairs(projectiles) do
+            love.graphics.setColor(0, 0, 0, 0.3)
+            love.graphics.draw(projectile.particle.trail, 0 ,0 + projectile.timer / 10)
+            
+            love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY()  + projectile.timer / 10, projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
 
 
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(projectile.particle.trail, 0 ,0)
-        love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY(), projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.draw(projectile.particle.trail, 0 ,0)
+            love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY(), projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
+        end
     end
-end
-function drawEnemies()
-    for i, enemy in ipairs(enemies) do
-        -- draw enemy shadow
-        love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)  
+--///////////--
 
-        -- draw enemy
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)    
-        love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)
-        love.graphics.setColor(1, 0, 0)   
-        love.graphics.rectangle("fill", enemy.x  - enemy.texture:getWidth() / 2, enemy.y - enemy.texture:getHeight() / 2, enemy.texture:getWidth(), 3) 
-        love.graphics.setColor(0, 1, 0)
-        love.graphics.rectangle("fill", enemy.x  - enemy.texture:getWidth() / 2, enemy.y - enemy.texture:getHeight() / 2, enemy.texture:getWidth() * enemy.health / enemy.maxHealth, 3) 
+--Explosion particles--
+    function createExplosionParticles(x, y, strength, time)
+        local explosion = {}
+        explosion.particle = love.graphics.newParticleSystem(particle1, 2^10)
+        explosion.particle:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,0.8)
+        explosion.particle:setSpread(2 * math.pi)
+        explosion.particle:setParticleLifetime(0.0,time)
+        explosion.particle:setSizes(1, 5)
+        explosion.particle:setSizeVariation(1)
+        explosion.particle:setSpeed(0, 50)
+        explosion.particle:moveTo(x, y)
+        explosion.particle:emit(2^strength)
+        table.insert(explosions, explosion)
     end
-end
+    function updateExplosionParticles(dt)
+        for i, explosion in ipairs(explosions) do
+            explosion.particle:update(dt)
+        end
+    end
+    function drawExplosionParticles()
+        for i, explosion in ipairs(explosions) do
+            love.graphics.draw(explosion.particle, 0 , 0)
+        end
+    end
+--///////////////////--
 
-function createExplosionParticles(x, y, strength, time)
-    local explosion = {}
-    explosion.particle = love.graphics.newParticleSystem(particle1, 2^10)
-    explosion.particle:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,0.8)
-    explosion.particle:setSpread(2 * math.pi)
-    explosion.particle:setParticleLifetime(0.0,time)
-    explosion.particle:setSizes(1, 5)
-    explosion.particle:setSizeVariation(1)
-    explosion.particle:setSpeed(0, 50)
-    explosion.particle:moveTo(x, y)
-    explosion.particle:emit(2^strength)
-    table.insert(explosions, explosion)
-end
-function updateExplosionParticles(dt)
-    for i, explosion in ipairs(explosions) do
-        explosion.particle:update(dt)
-    end
-end
-function drawExplosionParticles()
-    for i, explosion in ipairs(explosions) do
-        love.graphics.draw(explosion.particle, 0 , 0)
-    end
-end
-
---towerdefense
+--towerdefense--
     function createTower(x, y)
         local tower = {}
         tower.texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png")
@@ -493,6 +514,7 @@ end
         tower.layer3 = love.graphics.newQuad(0 + tower.texture:getWidth() * 2/3, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
         tower.x = x
         tower.y = y
+        tower.maxHealth = 100
         tower.health = 100
         tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
         tower.shape = love.physics.newCircleShape(tower.texture:getHeight() / 2)
@@ -500,6 +522,15 @@ end
         tower.fixture:setCategory(collisionClass.ground, collisionClass.friendly)
         tower.isConnected = true
         table.insert(tiles, tower)
+    end
+    function updateTower()
+        for i, tower in ipairs(tiles) do
+            if tower.health <= 0 then
+                createExplosionParticles(tower.x, tower.y, 10, 1)
+                tower.body:destroy()
+                table.remove(tiles, i)
+            end
+        end
     end
     function drawTower()
         for i, tower in ipairs(tiles) do
@@ -520,9 +551,14 @@ end
 
             love.graphics.setColor(1, 1, 1)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+
+            love.graphics.setColor(1, 0, 0)   
+        love.graphics.rectangle("fill", tower.x  - tower.texture:getWidth() / 6, tower.y - tower.texture:getHeight() / 2, tower.texture:getWidth() / 3, 1) 
+        love.graphics.setColor(0, 1, 0)
+        love.graphics.rectangle("fill", tower.x  - tower.texture:getWidth() / 6, tower.y - tower.texture:getHeight() / 2, (tower.texture:getWidth() * tower.health / tower.maxHealth) / 3, 1) 
         end
     end
---
+--////////////--
 
 --User Interface--
     function drawToggleButton(x, y, width, height, text, font, toggleTable, toggleKey)
@@ -568,6 +604,7 @@ function love.update(dt)
     mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
     updateEnemies(dt)
     updateProjectiles(dt)
+    updateTower()
     
     if player.attributes.isInJet then
         movePlayerInJet(dt)
@@ -615,17 +652,15 @@ function love.draw()
     drawToggleButton(100, 100, 100, 50, "WASD Steering", love.graphics.getFont(), player.attributes.jet, "WASDamingMode")
 end
 
-
-
 function love.keypressed(key, scancode, isrepeat)
     if key == "escape" then 
         fullscreen = not fullscreen
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
     if key == "e" then
-        for i = 1, 5 do
+        for i = 1, 2 do
             createEnemy("tank")
-            createEnemy("mobileSurfaceToAir")
+            createEnemy("mobileSurfaceToAir")  
         end
     end 
     if key == "q" then 
