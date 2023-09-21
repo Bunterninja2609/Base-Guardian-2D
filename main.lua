@@ -449,7 +449,7 @@ end
                     if projectile.body:isTouching(tower.body) then
                         createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 3, 2)
                         projectile.body:destroy()
-                        tower.health = tower.health - 100
+                        tower.health = tower.health - 10
                         table.remove(projectiles, i)
                         break
                     end
@@ -516,6 +516,7 @@ end
         tower.y = y
         tower.maxHealth = 100
         tower.health = 100
+        tower.direction = 0 * math.pi
         tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
         tower.shape = love.physics.newCircleShape(tower.texture:getHeight() / 2)
         tower.fixture = love.physics.newFixture(tower.body, tower.shape)
@@ -525,6 +526,21 @@ end
     end
     function updateTower()
         for i, tower in ipairs(tiles) do
+            local hasTarget = false
+            local target
+            for j, enemy in ipairs(enemies) do
+                if j == 1 then
+                    target = enemy.fixture
+                    hasTarget = true
+                end
+                if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, target) then
+                    target = enemy.fixture
+                end
+            end
+            if hasTarget then
+                tower.direction = math.atan2(target:getBody():getX() - tower.x, target:getBody():getY() - tower.y)
+            end
+            createProjectile("bullet", tower.x, tower.y, tower.direction, 100, 0, 1, 1, true, 10)
             if tower.health <= 0 then
                 createExplosionParticles(tower.x, tower.y, 10, 1)
                 tower.body:destroy()
@@ -541,10 +557,10 @@ end
             love.graphics.draw(tower.texture, tower.layer1, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
  
             love.graphics.setColor(0, 0, 0, 0.5)
-            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y + 1, player.jet.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y + 1, tower.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
             love.graphics.setColor(1, 1, 1)
-            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y, player.jet.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+            love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y, tower.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
             love.graphics.setColor(0, 0, 0, 0.5)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y + 1, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
