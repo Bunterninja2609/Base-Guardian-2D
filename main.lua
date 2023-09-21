@@ -524,6 +524,45 @@ end
     end
 --
 
+--User Interface--
+    function drawToggleButton(x, y, width, height, text, font, toggleTable, toggleKey)
+        -- Check for mouse position and click
+        local mouseX, mouseY = love.mouse.getPosition()
+        local isMousePressed = love.mouse.isDown(1) -- 1 represents the left mouse button
+
+        -- Check if the mouse is within the button's boundaries
+        local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
+                                    mouseY >= y and mouseY <= y + height
+
+        -- Handle button click
+        if isMouseInsideButton and isMousePressed then
+            toggleTable[toggleKey] = not toggleTable[toggleKey] -- Toggle the global variable
+        end
+
+        -- Draw button based on state
+        if toggleTable[toggleKey] then
+            love.graphics.setColor(0, 255, 0) -- Green when toggled on
+        else
+            love.graphics.setColor(255, 0, 0) -- Red when toggled off
+        end
+
+        love.graphics.rectangle("fill", x, y, width, height)
+
+        -- Reset color to white for other drawing
+        love.graphics.setColor(255, 255, 255)
+
+        -- Draw text on the button
+        local buttonText = toggleTable[toggleKey] and "ON" or "OFF"
+        if text then
+            buttonText = text
+        end
+        local textWidth = font:getWidth(buttonText)
+        local textHeight = font:getHeight(buttonText)
+        local textX = x + (width - textWidth) / 2
+        local textY = y + (height - textHeight) / 2
+        love.graphics.print(buttonText, textX, textY)
+    end
+--//////////////--
 function love.update(dt)
     mouseX = (love.mouse.getX() - love.graphics.getWidth() / 2 ) * worldScale
     mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
@@ -573,6 +612,7 @@ function love.draw()
     -- Draw Enemies
     
     cam:detach()
+    drawToggleButton(100, 100, 100, 50, "WASD Steering", love.graphics.getFont(), player.attributes.jet, "WASDamingMode")
 end
 
 
