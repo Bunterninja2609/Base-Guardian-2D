@@ -48,7 +48,7 @@ function love.load()
             speed = 25,
             health = 60,
             turningSpeed = 0.05,
-            range = 1,
+            range = 100,
             cooldown = 0.5,
             reloadTime = 2,
             barrage = 2,
@@ -307,6 +307,8 @@ function updateEnemies(dt)
         enemy.direction = enemy.direction + directionDifference * enemy.turningSpeed
         if love.physics.getDistance(enemy.fixture, enemy.lockedTarget) > enemy.range then
             enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
+        else
+            enemy.body:setLinearVelocity(0, 0)
         end
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
