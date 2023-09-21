@@ -48,7 +48,7 @@ function love.load()
             speed = 25,
             health = 60,
             turningSpeed = 0.05,
-            range = 3,
+            range = 1,
             cooldown = 0.5,
             reloadTime = 2,
             barrage = 2,
@@ -135,7 +135,7 @@ function love.load()
     
     projectiles = {}
     tiles = {}
-    -- collision classes are height: 1, 0; player or enemy: 2, 3; projectile: 4;
+   
     
     cam = {}
         cam.x = 0
@@ -246,7 +246,7 @@ function createEnemy(type)
 
         enemy.target = enemyTemplate.target
         enemy.projectile = enemyTemplate.projectile
-        enemy.lockedTarget = player.fixture
+        enemy.lockedTarget = base.fixture
         enemy.direction = 0 * math.pi
     if enemyTemplate.isOnGround then
         enemy.fixture:setCategory(collisionClass.enemy, collisionClass.ground)
@@ -261,11 +261,24 @@ function createEnemy(type)
 end
 function updateEnemies(dt)
     for i, enemy in ipairs(enemies) do
-        for j, tower in ipairs(tiles) do
-            if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
-                enemy.lockedTarget = tower.fixture
+        if enemy.target == "ground" then    
+            for j, tower in ipairs(tiles) do
+                if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
+                    enemy.lockedTarget = tower.fixture
+                end
+            end
+        elseif enemy.target == "air" then
+            enemy.lockedTarget = player.fixture
+        elseif enemy.target == "optional" then
+            enemy.lockedTarget = player.fixture
+            for j, tower in ipairs(tiles) do
+                if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
+                    enemy.lockedTarget = tower.fixture
+                end
             end
         end
+
+
         local wantedX = enemy.lockedTarget:getBody():getX() - enemy.x
         local wantedY = enemy.lockedTarget:getBody():getY() - enemy.y
         local currentVelocityX, currentVelocityY = enemy.body:getLinearVelocity()
@@ -292,7 +305,9 @@ function updateEnemies(dt)
         end
         local wantedDirection = math.atan2(wantedY, wantedX)
         enemy.direction = enemy.direction + directionDifference * enemy.turningSpeed
-        enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
+        if love.physics.getDistance(enemy.fixture, enemy.lockedTarget) > enemy.range then
+            enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
+        end
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
         
@@ -400,7 +415,7 @@ function updateProjectiles(dt)
         
         end
         projectile.timer = projectile.timer - dt
-        if projectile.timer <= 0 then
+        if projectile.timer <= 0 and not projectile.body:isDestroyed() then
             createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 2, 1)
             projectile.body:destroy()
             table.remove(projectiles, i)
