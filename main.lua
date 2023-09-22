@@ -660,43 +660,48 @@ end
 --////////////--
 
 --User Interface--
-    function drawToggleButton(x, y, width, height, text, font, toggleTable, toggleKey)
-        -- Check for mouse position and click
-        local mouseX, mouseY = love.mouse.getPosition()
-        local isMousePressed = love.mouse.isDown(1) -- 1 represents the left mouse button
+function drawToggleButton(x, y, width, height, text, font, toggleTable, toggleKey)
+    -- Check for mouse position and click
+    local mouseX, mouseY = love.mouse.getPosition()
 
-        -- Check if the mouse is within the button's boundaries
-        local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
-                                    mouseY >= y and mouseY <= y + height
+    -- Check if the mouse is within the button's boundaries
+    local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
+                                mouseY >= y and mouseY <= y + height
 
-        -- Handle button click
-        if isMouseInsideButton and isMousePressed then
-            toggleTable[toggleKey] = not toggleTable[toggleKey] -- Toggle the global variable
-        end
-
-        -- Draw button based on state
-        if toggleTable[toggleKey] then
-            love.graphics.setColor(0, 255, 0) -- Green when toggled on
-        else
-            love.graphics.setColor(255, 0, 0) -- Red when toggled off
-        end
-
-        love.graphics.rectangle("fill", x, y, width, height)
-
-        -- Reset color to white for other drawing
-        love.graphics.setColor(255, 255, 255)
-
-        -- Draw text on the button
-        local buttonText = toggleTable[toggleKey] and "ON" or "OFF"
-        if text then
-            buttonText = text
-        end
-        local textWidth = font:getWidth(buttonText)
-        local textHeight = font:getHeight(buttonText)
-        local textX = x + (width - textWidth) / 2
-        local textY = y + (height - textHeight) / 2
-        love.graphics.print(buttonText, textX, textY)
+    -- Handle button click
+    if love.mouse.isDown(1) and not mouseClick and isMouseInsideButton then
+        toggleTable[toggleKey] = not toggleTable[toggleKey] 
+        mouseClick = true  -- Set the flag to true when a tower is placed
     end
+    if not love.mouse.isDown(1) then
+        mouseClick = false
+    end
+
+    -- Draw button based on state
+    if toggleTable[toggleKey] then
+        love.graphics.setColor(0, 255, 0) -- Green when toggled on
+    else
+        love.graphics.setColor(255, 0, 0) -- Red when toggled off
+    end
+
+    love.graphics.rectangle("fill", x, y, width, height)
+
+    -- Reset color to white for other drawing
+    love.graphics.setColor(255, 255, 255)
+
+    -- Draw text on the button
+    local buttonText = toggleTable[toggleKey] and "ON" or "OFF"
+    if text then
+        buttonText = text
+    end
+    local textWidth = font:getWidth(buttonText)
+    local textHeight = font:getHeight(buttonText)
+    local textX = x + (width - textWidth) / 2
+    local textY = y + (height - textHeight) / 2
+    love.graphics.print(buttonText, textX, textY)
+end
+
+
     function drawPlayerHealthBar(x, y, width, heigth)
 
     
@@ -718,14 +723,13 @@ function love.update(dt)
         cam.x = base.body:getX()
         cam.y = base.body:getY()
         worldScale = player.buildZoom
-        if love.mouse.isDown(1) and not towerPlacedThisClick then
+        if love.mouse.isDown(1) and not mouseClick then
             createTower(mouseX, mouseY, "gun")
-            towerPlacedThisClick = true  -- Set the flag to true when a tower is placed
+            mouseClick = true  -- Set the flag to true when a tower is placed
         end
 
-        -- Reset the flag when the mouse button is released
         if not love.mouse.isDown(1) then
-            towerPlacedThisClick = false
+            mouseClick = false
         end
     elseif player.attributes.isInJet then
         movePlayerInJet(dt)
@@ -799,7 +803,7 @@ function love.keypressed(key, scancode, isrepeat)
         end
     end 
     if key == "q" then 
-        player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
+        player.buildmode = not player.buildmode
     end 
     if key == "space" then 
         createTower(player.jet.body:getX(), player.jet.body:getY(), "gun")
