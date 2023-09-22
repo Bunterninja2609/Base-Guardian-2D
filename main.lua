@@ -549,13 +549,28 @@ end
 --towerdefense--
     function createTower(x, y, type)
         local isInCommunicationrange = false
+        local isOverlapping = false
         for i, tower in ipairs(tiles) do
-            if tower.iscommunication and math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < tower.range then
+            if tower.isCommunication and math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < tower.range and math.sqrt((x - tower.x)^2 + (y - tower.y)^2) > 16 then
                 isInCommunicationrange = true
+                if math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < 16 then
+                    isOverlapping = true
+                    isInCommunicationrange = false
+                end
             end
         end
         if x < base.body:getX() and x > base.body:getX() - 200 then
-            isInCommunicationrange = true
+            for i, tower in ipairs(tiles) do
+                if math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < 16 then
+                    isOverlapping = true
+                end
+            end
+            if not isOverlapping then
+                isInCommunicationrange = true
+            end
+        end
+        if isOverlapping then
+            isInCommunicationrange = false
         end
 
         if isInCommunicationrange then
@@ -626,9 +641,9 @@ end
         for i, tower in ipairs(tiles) do
             if tower.isCommunication and player.buildmode then
                 love.graphics.setColor(0, 1, 0, 0.2)
-                love.graphics.circle("fill", tower.x, tower.y, 200)
+                love.graphics.circle("fill", tower.x, tower.y, tower.range)
                 love.graphics.setColor(0, 1, 0, 0.2)
-                love.graphics.circle("line", tower.x, tower.y, 200)
+                love.graphics.circle("line", tower.x, tower.y, tower.range)
             end
         end
         for i, tower in ipairs(tiles) do
@@ -724,7 +739,7 @@ function love.update(dt)
         cam.y = base.body:getY()
         worldScale = player.buildZoom
         if love.mouse.isDown(1) and not mouseClick then
-            createTower(mouseX, mouseY, "gun")
+            createTower(mouseX, mouseY, "communication")
             mouseClick = true  -- Set the flag to true when a tower is placed
         end
 
