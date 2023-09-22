@@ -195,6 +195,9 @@ function love.load()
     particleSystem.muzzleFlash = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
     particleSystem.muzzleFlash:setParticleLifetime(0, 0.2)
     explosions = {}
+
+    mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
+    mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 end
 
 function movePlayerInJet(dt)
@@ -706,8 +709,8 @@ end
     end
 --//////////////--
 function love.update(dt)
-    mouseX = (love.mouse.getX() - love.graphics.getWidth() / 2 ) * worldScale
-    mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
+    mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
+    mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
     updateEnemies(dt)
     updateProjectiles(dt)
     updateTower(dt)
@@ -715,9 +718,7 @@ function love.update(dt)
         cam.x = base.body:getX()
         cam.y = base.body:getY()
         worldScale = player.buildZoom
-        if love.mouse.isDown(2) then
             createTower(mouseX, mouseY, "gun")
-        end
     elseif player.attributes.isInJet then
         movePlayerInJet(dt)
     else
