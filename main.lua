@@ -718,7 +718,15 @@ function love.update(dt)
         cam.x = base.body:getX()
         cam.y = base.body:getY()
         worldScale = player.buildZoom
+        if love.mouse.isDown(1) and not towerPlacedThisClick then
             createTower(mouseX, mouseY, "gun")
+            towerPlacedThisClick = true  -- Set the flag to true when a tower is placed
+        end
+
+        -- Reset the flag when the mouse button is released
+        if not love.mouse.isDown(1) then
+            towerPlacedThisClick = false
+        end
     elseif player.attributes.isInJet then
         movePlayerInJet(dt)
     else
