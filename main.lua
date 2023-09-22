@@ -798,7 +798,7 @@ function love.draw()
             love.graphics.setColor(1, 0, 0)
             love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
         -- Draw base layer 2
-        love.graphics.setColor(1, 1, 1, 0.5)
+        love.graphics.setColor(1, 1, 1, 1)
         love.graphics.draw(base.texture, base.layer2, base.body:getX() - 32, base.body:getY() - 32)
         
     
