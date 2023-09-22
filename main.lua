@@ -715,6 +715,9 @@ function love.update(dt)
         cam.x = base.body:getX()
         cam.y = base.body:getY()
         worldScale = player.buildZoom
+        if love.mouse.isDown(2) then
+            createTower(mouseX, mouseY, "gun")
+        end
     elseif player.attributes.isInJet then
         movePlayerInJet(dt)
     else
@@ -763,6 +766,12 @@ function love.draw()
         love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
         -- Draw Enemies
         
+    
+        love.graphics.line(mouseX, mouseY, base.body:getX(), base.body:getY())
+
+
+
+
     cam:detach()
     drawToggleButton(100, 100, 100, 50, "WASD Steering", love.graphics.getFont(), player.attributes.jet, "WASDamingMode")
     drawToggleButton(100, 200, 100, 50, "buildmode", love.graphics.getFont(), player, "buildmode")
