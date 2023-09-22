@@ -136,6 +136,9 @@ function love.load()
         base.body = love.physics.newBody(World, 1000, 300, "static")
         base.shape = love.physics.newCircleShape(10)
         base.fixture = love.physics.newFixture(base.body, base.shape)
+        base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
+        base.layer1 = love.graphics.newQuad(32, 0, 32, 64, base.texture)
+        base.layer2 = love.graphics.newQuad(0, 0, 32, 64, base.texture)
     
     projectiles = {}
     tiles = {}
@@ -675,46 +678,46 @@ end
 --////////////--
 
 --User Interface--
-function drawToggleButton(x, y, width, height, text, font, toggleTable, toggleKey)
-    -- Check for mouse position and click
-    local mouseX, mouseY = love.mouse.getPosition()
+    function drawToggleButton(x, y, width, height, text, font, toggleTable, toggleKey)
+        -- Check for mouse position and click
+        local mouseX, mouseY = love.mouse.getPosition()
 
-    -- Check if the mouse is within the button's boundaries
-    local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
-                                mouseY >= y and mouseY <= y + height
+        -- Check if the mouse is within the button's boundaries
+        local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
+                                    mouseY >= y and mouseY <= y + height
 
-    -- Handle button click
-    if love.mouse.isDown(1) and not mouseClick and isMouseInsideButton then
-        toggleTable[toggleKey] = not toggleTable[toggleKey] 
-        mouseClick = true  -- Set the flag to true when a tower is placed
+        -- Handle button click
+        if love.mouse.isDown(1) and not mouseClick and isMouseInsideButton then
+            toggleTable[toggleKey] = not toggleTable[toggleKey] 
+            mouseClick = true  -- Set the flag to true when a tower is placed
+        end
+        if not love.mouse.isDown(1) then
+            mouseClick = false
+        end
+
+        -- Draw button based on state
+        if toggleTable[toggleKey] then
+            love.graphics.setColor(0, 255, 0) -- Green when toggled on
+        else
+            love.graphics.setColor(255, 0, 0) -- Red when toggled off
+        end
+
+        love.graphics.rectangle("fill", x, y, width, height)
+
+        -- Reset color to white for other drawing
+        love.graphics.setColor(255, 255, 255)
+
+        -- Draw text on the button
+        local buttonText = toggleTable[toggleKey] and "ON" or "OFF"
+        if text then
+            buttonText = text
+        end
+        local textWidth = font:getWidth(buttonText)
+        local textHeight = font:getHeight(buttonText)
+        local textX = x + (width - textWidth) / 2
+        local textY = y + (height - textHeight) / 2
+        love.graphics.print(buttonText, textX, textY)
     end
-    if not love.mouse.isDown(1) then
-        mouseClick = false
-    end
-
-    -- Draw button based on state
-    if toggleTable[toggleKey] then
-        love.graphics.setColor(0, 255, 0) -- Green when toggled on
-    else
-        love.graphics.setColor(255, 0, 0) -- Red when toggled off
-    end
-
-    love.graphics.rectangle("fill", x, y, width, height)
-
-    -- Reset color to white for other drawing
-    love.graphics.setColor(255, 255, 255)
-
-    -- Draw text on the button
-    local buttonText = toggleTable[toggleKey] and "ON" or "OFF"
-    if text then
-        buttonText = text
-    end
-    local textWidth = font:getWidth(buttonText)
-    local textHeight = font:getHeight(buttonText)
-    local textX = x + (width - textWidth) / 2
-    local textY = y + (height - textHeight) / 2
-    love.graphics.print(buttonText, textX, textY)
-end
 
 
     function drawPlayerHealthBar(x, y, width, heigth)
@@ -776,6 +779,8 @@ function love.draw()
             love.graphics.setColor(0, 1, 0, 0.2)
             love.graphics.rectangle("line", base.body:getX(), - 100, - 200, - 1000)
         end
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(base.texture, base.layer1, base.body:getX() - 32, base.body:getY() - 32)
         drawProjectiles()
         
         -- draw player jet shadow
@@ -786,13 +791,15 @@ function love.draw()
         love.graphics.draw(particleSystem.muzzleFlash, 0 ,0)
         
         -- Draw the player jet 
-        love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
-        drawExplosionParticles()
+            love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+            drawExplosionParticles()
 
-        love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.direction) * 50, playerY + math.sin(player.jet.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
-        love.graphics.setColor(1, 0, 0)
-        love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
-        -- Draw Enemies
+            love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.direction) * 50, playerY + math.sin(player.jet.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+            love.graphics.setColor(1, 0, 0)
+            love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+        -- Draw base layer 2
+        love.graphics.setColor(1, 1, 1, 0.5)
+        love.graphics.draw(base.texture, base.layer2, base.body:getX() - 32, base.body:getY() - 32)
         
     
         love.graphics.line(mouseX, mouseY, base.body:getX(), base.body:getY())
