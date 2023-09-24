@@ -8,6 +8,8 @@ function love.load()
     worldScale = baseZoom + additionalZoom
     theme = "2023"
     particle1 = love.graphics.newImage("textures/"..theme.."/particle1.png")
+    selectedTower = "gun"
+
 
     collisionClass = {
         air = 1,
@@ -21,32 +23,32 @@ function love.load()
 
     
     player = {}
-    player.buildmode = false
-    player.buildZoom = 2
-        player.jet = {}
-        player.jet.body = love.physics.newBody(World, 0, 300, "dynamic")
-        player.jet.shape = love.physics.newCircleShape(10)
-        player.jet.fixture = love.physics.newFixture(player.jet.body, player.jet.shape)
-        player.jet.fixture:setCategory(collisionClass.friendly, collisionClass.air)
-        player.jet.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
-        player.jet.direction = 0 * math.pi
-        player.jet.wantedDirection = 0 * math.pi
+        player.buildmode = false
+        player.buildZoom = 2
+            player.jet = {}
+            player.jet.body = love.physics.newBody(World, 0, 300, "dynamic")
+            player.jet.shape = love.physics.newCircleShape(10)
+            player.jet.fixture = love.physics.newFixture(player.jet.body, player.jet.shape)
+            player.jet.fixture:setCategory(collisionClass.friendly, collisionClass.air)
+            player.jet.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
+            player.jet.direction = 0 * math.pi
+            player.jet.wantedDirection = 0 * math.pi
+            
+            player.attributes = {}
+                player.attributes.isInJet = true
+                player.attributes.jet = {}
+                    player.attributes.jet.health = 200
+                    player.attributes.jet.maxHealth = 200
+                    player.attributes.jet.speed = 150
+                    player.attributes.jet.turningSpeed = 0.05
+                    player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
+                    player.attributes.jet.crosshair = love.graphics.newImage("textures/" .. theme .. "/crosshair.png")
+                    player.attributes.jet.scale = 3
+                    player.attributes.jet.height = 10
+                    player.attributes.jet.WASDamingMode = true
+                    player.attributes.jet.cooldown = 0.1
+                    player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
         
-        player.attributes = {}
-            player.attributes.isInJet = true
-            player.attributes.jet = {}
-                player.attributes.jet.health = 200
-                player.attributes.jet.maxHealth = 200
-                player.attributes.jet.speed = 150
-                player.attributes.jet.turningSpeed = 0.05
-                player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
-                player.attributes.jet.crosshair = love.graphics.newImage("textures/" .. theme .. "/crosshair.png")
-                player.attributes.jet.scale = 3
-                player.attributes.jet.height = 10
-                player.attributes.jet.WASDamingMode = true
-                player.attributes.jet.cooldown = 0.1
-                player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
-    
     enemies = {}
     enemyStats = {
         tank = {
@@ -141,6 +143,7 @@ function love.load()
         base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
         base.layer1 = love.graphics.newQuad(32, 0, 32, 64, base.texture)
         base.layer2 = love.graphics.newQuad(0, 0, 32, 64, base.texture)
+        base.communictaionDistance = 64
     
     projectiles = {}
     tiles = {}
@@ -560,7 +563,7 @@ end
                 isInCommunicationrange = true
             end
         end
-        if x < base.body:getX() and x > base.body:getX() - 200 then
+        if x < base.body:getX() and x > base.body:getX() - base.communictaionDistance then
             isInCommunicationrange = true
         end
         for i, tower in ipairs(tiles) do
@@ -736,7 +739,7 @@ function love.update(dt)
         cam.y = base.body:getY()
         baseZoom = player.buildZoom
         if love.mouse.isDown(1) and not mouseClick then
-            createTower(mouseX, mouseY, "bigCommunication")
+            createTower(mouseX, mouseY, selectedTower)
             mouseClick = true  -- Set the flag to true when a tower is placed
         end
 
@@ -769,9 +772,9 @@ function love.draw()
         drawTower()
         if player.buildmode then
             love.graphics.setColor(0, 1, 0, 0.1)
-            love.graphics.rectangle("fill", base.body:getX(), - 10^10, - 200, 10^20)
+            love.graphics.rectangle("fill", base.body:getX(), - 10^10, - base.communictaionDistance, 10^20)
             love.graphics.setColor(0, 1, 0, 0.1)
-            love.graphics.rectangle("line", base.body:getX(), - 10^10, - 200, 10^20)
+            love.graphics.rectangle("line", base.body:getX(), - 10^10, - base.communictaionDistance, 10^20)
         end
         love.graphics.setColor(1, 1, 1)
         love.graphics.draw(base.texture, base.layer1, base.body:getX() - 32, base.body:getY() - 32)
@@ -821,9 +824,26 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "space" then 
         createTower(player.jet.body:getX(), player.jet.body:getY(), "gun")
     end 
+    if key == "1" then
+        selectedTower = "gun"
+    end
+    if key == "2" then
+        selectedTower = "communication"
+    end
+    if key == "3" then
+        selectedTower = "bigCommunication"
+    end
+    if key == "4" then
+        selectedTower = "gun"
+    end
+
 end
 
 function love.wheelmoved(x, y)
-    additionalZoom = additionalZoom + y / 100
+    if player.buildmode then
+        additionalZoom = additionalZoom + y / 100
+    else
+        additionalZoom = 0
+    end
 end
 --Hello World
