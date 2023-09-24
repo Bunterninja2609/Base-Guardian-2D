@@ -3,7 +3,9 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
     World = love.physics.newWorld(0, 0, true)
-    worldScale = 3
+    baseZoom = 3
+    additionalZoom = 0
+    worldScale = baseZoom + additionalZoom
     theme = "2023"
     particle1 = love.graphics.newImage("textures/"..theme.."/particle1.png")
 
@@ -259,7 +261,7 @@ function movePlayerInJet(dt)
 
     cam.x = player.jet.body:getX()
     cam.y = player.jet.body:getY()
-    worldScale = player.attributes.jet.scale
+    baseZoom = player.attributes.jet.scale
     if player.attributes.jet.cooldownTimer <= 0 then
         if love.mouse.isDown(1) then
             createProjectile("bullet" ,player.jet.body:getX() , player.jet.body:getY() ,player.jet.direction , 500 ,currentSpeed, 15, 15, true, 100)
@@ -634,9 +636,9 @@ end
     function drawTower()
         for i, tower in ipairs(tiles) do
             if tower.isCommunication and player.buildmode then
-                love.graphics.setColor(0, 1, 0, 0.2)
+                love.graphics.setColor(0, 1, 0, 0.1)
                 love.graphics.circle("fill", tower.x, tower.y, tower.range)
-                love.graphics.setColor(0, 1, 0, 0.2)
+                love.graphics.setColor(0, 1, 0, 0.1)
                 love.graphics.circle("line", tower.x, tower.y, tower.range)
             end
         end
@@ -723,6 +725,7 @@ end
     end
 --//////////////--
 function love.update(dt)
+    worldScale = baseZoom + additionalZoom
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
     updateEnemies(dt)
@@ -731,7 +734,7 @@ function love.update(dt)
     if player.buildmode then
         cam.x = base.body:getX()
         cam.y = base.body:getY()
-        worldScale = player.buildZoom
+        baseZoom = player.buildZoom
         if love.mouse.isDown(1) and not mouseClick then
             createTower(mouseX, mouseY, "bigCommunication")
             mouseClick = true  -- Set the flag to true when a tower is placed
@@ -765,10 +768,10 @@ function love.draw()
         drawEnemies()
         drawTower()
         if player.buildmode then
-            love.graphics.setColor(0, 1, 0, 0.2)
-            love.graphics.rectangle("fill", base.body:getX(), - 100, - 200, 1000)
-            love.graphics.setColor(0, 1, 0, 0.2)
-            love.graphics.rectangle("line", base.body:getX(), - 100, - 200, - 1000)
+            love.graphics.setColor(0, 1, 0, 0.1)
+            love.graphics.rectangle("fill", base.body:getX(), - 10^10, - 200, 10^20)
+            love.graphics.setColor(0, 1, 0, 0.1)
+            love.graphics.rectangle("line", base.body:getX(), - 10^10, - 200, 10^20)
         end
         love.graphics.setColor(1, 1, 1)
         love.graphics.draw(base.texture, base.layer1, base.body:getX() - 32, base.body:getY() - 32)
@@ -791,9 +794,6 @@ function love.draw()
         -- Draw base layer 2
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.draw(base.texture, base.layer2, base.body:getX() - 32, base.body:getY() - 32)
-        
-    
-        love.graphics.line(mouseX, mouseY, base.body:getX(), base.body:getY())
 
 
 
@@ -821,5 +821,9 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "space" then 
         createTower(player.jet.body:getX(), player.jet.body:getY(), "gun")
     end 
+end
+
+function love.wheelmoved(x, y)
+    additionalZoom = additionalZoom + y / 100
 end
 --Hello World
