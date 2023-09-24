@@ -144,7 +144,7 @@ function love.load()
     tiles = {}
     towertemplates = {
         communication = {
-            texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png"),
+            texture = love.graphics.newImage("textures/".. theme .. "/tower/communication.png"),
             range = 50,
             isCommunication = true,
             cooldown = 0,
@@ -155,7 +155,7 @@ function love.load()
 
         },
         bigCommunication = {
-            texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png"),
+            texture = love.graphics.newImage("textures/".. theme .. "/tower/communication.png"),
             range = 100,
             isCommunication = true,
             cooldown = 0,
@@ -556,30 +556,21 @@ end
         for i, tower in ipairs(tiles) do
             if tower.isCommunication and math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < tower.range and math.sqrt((x - tower.x)^2 + (y - tower.y)^2) > 16 then
                 isInCommunicationrange = true
-                if math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < 16 then
-                    isOverlapping = true
-                    isInCommunicationrange = false
-                end
             end
         end
         if x < base.body:getX() and x > base.body:getX() - 200 then
-            for i, tower in ipairs(tiles) do
-                if math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < 16 then
-                    isOverlapping = true
-                end
-            end
-            if not isOverlapping then
-                isInCommunicationrange = true
-            end
+            isInCommunicationrange = true
         end
-        if isOverlapping then
-            isInCommunicationrange = false
+        for i, tower in ipairs(tiles) do
+            if math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < 32 then
+                isOverlapping = true
+            end
         end
 
-        if isInCommunicationrange then
+        if isInCommunicationrange and not isOverlapping then
             local template = towertemplates[type]
             local tower = {}
-            tower.texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png")
+            tower.texture = template.texture
             tower.layer1 = love.graphics.newQuad(0, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
             tower.layer2 = love.graphics.newQuad(0 + tower.texture:getWidth() * 1/3, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
             tower.layer3 = love.graphics.newQuad(0 + tower.texture:getWidth() * 2/3, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
@@ -742,7 +733,7 @@ function love.update(dt)
         cam.y = base.body:getY()
         worldScale = player.buildZoom
         if love.mouse.isDown(1) and not mouseClick then
-            createTower(mouseX, mouseY, "communication")
+            createTower(mouseX, mouseY, "bigCommunication")
             mouseClick = true  -- Set the flag to true when a tower is placed
         end
 
