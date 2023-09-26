@@ -75,7 +75,7 @@ function love.load()
             reloadTime = 3,
             barrage = 6,
             target = "optional",
-            projectile = "missiles",
+            projectile = "missile",
             isOnGround = false,
             dropCount = 6
         },
@@ -89,7 +89,7 @@ function love.load()
             reloadTime = 2,
             barrage = 10,
             target = "air",
-            projectile = "missiles",
+            projectile = "missile",
             isOnGround = true,
             dropCount = 7
         },
@@ -146,6 +146,26 @@ function love.load()
         base.communictaionDistance = 64
     
     projectiles = {}
+    projectileTemplates = {
+        bullet = {
+            speed = 200,
+            dmg = 10,
+            aoe = 0,
+            hasAutoAim = false
+        },
+        missile = {
+            speed = 100,
+            dmg = 20,
+            aoe = 10,
+            hasAutoAim = true
+        },
+        shell = {
+            speed = 60,
+            dmg = 15,
+            aoe = 0,
+            hasAutoAim = false
+        }
+    }
     tiles = {}
     towertemplates = {
         communication = {
@@ -427,8 +447,9 @@ end
 --///////--
 
 --projectiles--
-    function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY, isShotByPlayer, range) 
+    function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY, isShotByPlayer, range, target) 
         local projectile = {}
+            template = projectileTemplates[type]
             projectile.direction = direction
             projectile.timer = range
             projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * offsetX, y + math.sin(projectile.direction) * offsetY, "dynamic")
@@ -437,6 +458,8 @@ end
             projectile.shape = love.physics.newCircleShape(1)
             projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
             projectile.body:setAngle(projectile.direction)
+
+            projectile.damage = template.dmg
             projectile.fixture:setCategory(collisionClass.projectile)
             if not isShotByPlayer then
                 projectile.fixture:setMask(collisionClass.projectile, collisionClass.enemy, collisionClass.ground, collisionClass.air)
@@ -470,6 +493,13 @@ end
     function updateProjectiles(dt)
         for i, projectile in ipairs(projectiles) do
             local shouldBreak = false
+            if projectile.hasAutoAim then
+                if projectile.isShotByPlayer then
+                    for j, enemy in ipairs(enemies) do
+                        if love.physics.getDistance(projectile.fixture,)
+                    end
+                end
+            end
             projectile.direction = projectile.body:getAngle()
             projectile.particle.trail:setSpeed(100, 200)
             projectile.particle.trail:setPosition(projectile.body:getX(), projectile.body:getY())
@@ -590,7 +620,7 @@ end
             tower.cooldownTimer = template.cooldown
             tower.barrage = template.barrage
             tower.direction = 0 * math.pi
-            tower.target = base.fixture
+            tower.target = "none"
             tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
             tower.shape = love.physics.newCircleShape(tower.texture:getHeight() / 2)
             tower.fixture = love.physics.newFixture(tower.body, tower.shape)
@@ -601,28 +631,21 @@ end
     end
     function updateTower(dt)
         for i, tower in ipairs(tiles) do
-            if not tower.target:isDestroyed() then
-                for j, enemy in ipairs(enemies) do
-                    if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(enemy.fixture, tower.target) then
-                        tower.target = enemy.fixture
-                    end
-                end
-            else 
+            if tower.target == "none"  or not tower.target:isDestroyed() then
                 if #enemies > 0 then
                     tower.target = enemies[1].fixture
-                else
-                    tower.target = base.fixture
                 end
                 for j, enemy in ipairs(enemies) do
-                    if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(enemy.fixture, tower.target) then
+                    if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(tower.fixture, tower.target) then
                         tower.target = enemy.fixture
+                        tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)  
                     end
                 end
-
+            else
+                tower.target = "none"
             end
-            tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)
-        
-            if tower.cooldownTimer <= 0 and not tower.isCommunication then
+
+            if tower.cooldownTimer <= 0 and not tower.isCommunication and tower.target ~= "none" then
                 createProjectile("bullet", tower.x, tower.y, tower.direction, 500, 0, 1, 1, true, 300)
                 tower.cooldownTimer = tower.cooldown
             else
@@ -759,7 +782,6 @@ function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
     love.graphics.setColor(1, 1, 1)
     cam:attach()
-
         local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
         
         -- Draw temporary Background
