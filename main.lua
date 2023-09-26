@@ -496,7 +496,7 @@ end
             if projectile.hasAutoAim then
                 if projectile.isShotByPlayer then
                     for j, enemy in ipairs(enemies) do
-                        if love.physics.getDistance(projectile.fixture,)
+                        
                     end
                 end
             end
