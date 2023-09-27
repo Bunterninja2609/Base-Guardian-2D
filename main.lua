@@ -3,9 +3,13 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
     World = love.physics.newWorld(0, 0, true)
-    worldScale = 3
+    baseZoom = 3
+    additionalZoom = 0
+    worldScale = baseZoom + additionalZoom
     theme = "2023"
     particle1 = love.graphics.newImage("textures/"..theme.."/particle1.png")
+    selectedTower = "gun"
+
 
     collisionClass = {
         air = 1,
@@ -19,32 +23,32 @@ function love.load()
 
     
     player = {}
-    player.buildmode = false
-    player.buildZoom = 2
-        player.jet = {}
-        player.jet.body = love.physics.newBody(World, 0, 300, "dynamic")
-        player.jet.shape = love.physics.newCircleShape(10)
-        player.jet.fixture = love.physics.newFixture(player.jet.body, player.jet.shape)
-        player.jet.fixture:setCategory(collisionClass.friendly, collisionClass.air)
-        player.jet.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
-        player.jet.direction = 0 * math.pi
-        player.jet.wantedDirection = 0 * math.pi
+        player.buildmode = false
+        player.buildZoom = 2
+            player.jet = {}
+            player.jet.body = love.physics.newBody(World, 0, 300, "dynamic")
+            player.jet.shape = love.physics.newCircleShape(10)
+            player.jet.fixture = love.physics.newFixture(player.jet.body, player.jet.shape)
+            player.jet.fixture:setCategory(collisionClass.friendly, collisionClass.air)
+            player.jet.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
+            player.jet.direction = 0 * math.pi
+            player.jet.wantedDirection = 0 * math.pi
+            
+            player.attributes = {}
+                player.attributes.isInJet = true
+                player.attributes.jet = {}
+                    player.attributes.jet.health = 200
+                    player.attributes.jet.maxHealth = 200
+                    player.attributes.jet.speed = 150
+                    player.attributes.jet.turningSpeed = 0.05
+                    player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
+                    player.attributes.jet.crosshair = love.graphics.newImage("textures/" .. theme .. "/crosshair.png")
+                    player.attributes.jet.scale = 3
+                    player.attributes.jet.height = 10
+                    player.attributes.jet.WASDamingMode = true
+                    player.attributes.jet.cooldown = 0.1
+                    player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
         
-        player.attributes = {}
-            player.attributes.isInJet = true
-            player.attributes.jet = {}
-                player.attributes.jet.health = 200
-                player.attributes.jet.maxHealth = 200
-                player.attributes.jet.speed = 150
-                player.attributes.jet.turningSpeed = 0.05
-                player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
-                player.attributes.jet.crosshair = love.graphics.newImage("textures/" .. theme .. "/crosshair.png")
-                player.attributes.jet.scale = 3
-                player.attributes.jet.height = 10
-                player.attributes.jet.WASDamingMode = true
-                player.attributes.jet.cooldown = 0.1
-                player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
-    
     enemies = {}
     enemyStats = {
         tank = {
@@ -71,7 +75,7 @@ function love.load()
             reloadTime = 3,
             barrage = 6,
             target = "optional",
-            projectile = "missiles",
+            projectile = "missile",
             isOnGround = false,
             dropCount = 6
         },
@@ -85,7 +89,7 @@ function love.load()
             reloadTime = 2,
             barrage = 10,
             target = "air",
-            projectile = "missiles",
+            projectile = "missile",
             isOnGround = true,
             dropCount = 7
         },
@@ -136,12 +140,36 @@ function love.load()
         base.body = love.physics.newBody(World, 1000, 300, "static")
         base.shape = love.physics.newCircleShape(10)
         base.fixture = love.physics.newFixture(base.body, base.shape)
+        base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
+        base.layer1 = love.graphics.newQuad(32, 0, 32, 64, base.texture)
+        base.layer2 = love.graphics.newQuad(0, 0, 32, 64, base.texture)
+        base.communictaionDistance = 64
     
     projectiles = {}
+    projectileTemplates = {
+        bullet = {
+            speed = 200,
+            dmg = 10,
+            aoe = 0,
+            hasAutoAim = false
+        },
+        missile = {
+            speed = 100,
+            dmg = 20,
+            aoe = 10,
+            hasAutoAim = true
+        },
+        shell = {
+            speed = 60,
+            dmg = 15,
+            aoe = 0,
+            hasAutoAim = false
+        }
+    }
     tiles = {}
     towertemplates = {
         communication = {
-            texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png"),
+            texture = love.graphics.newImage("textures/".. theme .. "/tower/communication.png"),
             range = 50,
             isCommunication = true,
             cooldown = 0,
@@ -152,7 +180,7 @@ function love.load()
 
         },
         bigCommunication = {
-            texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png"),
+            texture = love.graphics.newImage("textures/".. theme .. "/tower/communication.png"),
             range = 100,
             isCommunication = true,
             cooldown = 0,
@@ -195,6 +223,9 @@ function love.load()
     particleSystem.muzzleFlash = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
     particleSystem.muzzleFlash:setParticleLifetime(0, 0.2)
     explosions = {}
+
+    mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
+    mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 end
 
 function movePlayerInJet(dt)
@@ -253,7 +284,7 @@ function movePlayerInJet(dt)
 
     cam.x = player.jet.body:getX()
     cam.y = player.jet.body:getY()
-    worldScale = player.attributes.jet.scale
+    baseZoom = player.attributes.jet.scale
     if player.attributes.jet.cooldownTimer <= 0 then
         if love.mouse.isDown(1) then
             createProjectile("bullet" ,player.jet.body:getX() , player.jet.body:getY() ,player.jet.direction , 500 ,currentSpeed, 15, 15, true, 100)
@@ -416,8 +447,9 @@ end
 --///////--
 
 --projectiles--
-    function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY, isShotByPlayer, range) 
+    function createProjectile(type, x, y, direction, speed, momentum, offsetX, offsetY, isShotByPlayer, range, target) 
         local projectile = {}
+            template = projectileTemplates[type]
             projectile.direction = direction
             projectile.timer = range
             projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * offsetX, y + math.sin(projectile.direction) * offsetY, "dynamic")
@@ -426,6 +458,8 @@ end
             projectile.shape = love.physics.newCircleShape(1)
             projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
             projectile.body:setAngle(projectile.direction)
+
+            projectile.damage = template.dmg
             projectile.fixture:setCategory(collisionClass.projectile)
             if not isShotByPlayer then
                 projectile.fixture:setMask(collisionClass.projectile, collisionClass.enemy, collisionClass.ground, collisionClass.air)
@@ -459,6 +493,13 @@ end
     function updateProjectiles(dt)
         for i, projectile in ipairs(projectiles) do
             local shouldBreak = false
+            if projectile.hasAutoAim then
+                if projectile.isShotByPlayer then
+                    for j, enemy in ipairs(enemies) do
+                        projectile.direction = 2 * math.pi
+                    end
+                end
+            end
             projectile.direction = projectile.body:getAngle()
             projectile.particle.trail:setSpeed(100, 200)
             projectile.particle.trail:setPosition(projectile.body:getX(), projectile.body:getY())
@@ -546,19 +587,25 @@ end
 --towerdefense--
     function createTower(x, y, type)
         local isInCommunicationrange = false
+        local isOverlapping = false
         for i, tower in ipairs(tiles) do
-            if tower.iscommunication and math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < tower.range then
+            if tower.isCommunication and math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < tower.range and math.sqrt((x - tower.x)^2 + (y - tower.y)^2) > 16 then
                 isInCommunicationrange = true
             end
         end
-        if x < base.body:getX() and x > base.body:getX() - 200 then
+        if x < base.body:getX() and x > base.body:getX() - base.communictaionDistance then
             isInCommunicationrange = true
         end
+        for i, tower in ipairs(tiles) do
+            if math.sqrt((x - tower.x)^2 + (y - tower.y)^2) < 32 then
+                isOverlapping = true
+            end
+        end
 
-        if isInCommunicationrange then
+        if isInCommunicationrange and not isOverlapping then
             local template = towertemplates[type]
             local tower = {}
-            tower.texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png")
+            tower.texture = template.texture
             tower.layer1 = love.graphics.newQuad(0, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
             tower.layer2 = love.graphics.newQuad(0 + tower.texture:getWidth() * 1/3, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
             tower.layer3 = love.graphics.newQuad(0 + tower.texture:getWidth() * 2/3, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
@@ -573,7 +620,7 @@ end
             tower.cooldownTimer = template.cooldown
             tower.barrage = template.barrage
             tower.direction = 0 * math.pi
-            tower.target = base.fixture
+            tower.target = "none"
             tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
             tower.shape = love.physics.newCircleShape(tower.texture:getHeight() / 2)
             tower.fixture = love.physics.newFixture(tower.body, tower.shape)
@@ -584,28 +631,21 @@ end
     end
     function updateTower(dt)
         for i, tower in ipairs(tiles) do
-            if not tower.target:isDestroyed() then
-                for j, enemy in ipairs(enemies) do
-                    if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(enemy.fixture, tower.target) then
-                        tower.target = enemy.fixture
-                    end
-                end
-            else 
+            if tower.target == "none"  or not tower.target:isDestroyed() then
                 if #enemies > 0 then
                     tower.target = enemies[1].fixture
-                else
-                    tower.target = base.fixture
                 end
                 for j, enemy in ipairs(enemies) do
-                    if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(enemy.fixture, tower.target) then
+                    if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(tower.fixture, tower.target) then
                         tower.target = enemy.fixture
+                        tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)  
                     end
                 end
-
+            else
+                tower.target = "none"
             end
-            tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)
-        
-            if tower.cooldownTimer <= 0 and not tower.isCommunication then
+
+            if tower.cooldownTimer <= 0 and not tower.isCommunication and tower.target ~= "none" then
                 createProjectile("bullet", tower.x, tower.y, tower.direction, 500, 0, 1, 1, true, 300)
                 tower.cooldownTimer = tower.cooldown
             else
@@ -622,10 +662,10 @@ end
     function drawTower()
         for i, tower in ipairs(tiles) do
             if tower.isCommunication and player.buildmode then
-                love.graphics.setColor(0, 1, 0, 0.2)
-                love.graphics.circle("fill", tower.x, tower.y, 200)
-                love.graphics.setColor(0, 1, 0, 0.2)
-                love.graphics.circle("line", tower.x, tower.y, 200)
+                love.graphics.setColor(0, 1, 0, 0.1)
+                love.graphics.circle("fill", tower.x, tower.y, tower.range)
+                love.graphics.setColor(0, 1, 0, 0.1)
+                love.graphics.circle("line", tower.x, tower.y, tower.range)
             end
         end
         for i, tower in ipairs(tiles) do
@@ -660,15 +700,18 @@ end
     function drawToggleButton(x, y, width, height, text, font, toggleTable, toggleKey)
         -- Check for mouse position and click
         local mouseX, mouseY = love.mouse.getPosition()
-        local isMousePressed = love.mouse.isDown(1) -- 1 represents the left mouse button
 
         -- Check if the mouse is within the button's boundaries
         local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
                                     mouseY >= y and mouseY <= y + height
 
         -- Handle button click
-        if isMouseInsideButton and isMousePressed then
-            toggleTable[toggleKey] = not toggleTable[toggleKey] -- Toggle the global variable
+        if love.mouse.isDown(1) and not mouseClick and isMouseInsideButton then
+            toggleTable[toggleKey] = not toggleTable[toggleKey] 
+            mouseClick = true  -- Set the flag to true when a tower is placed
+        end
+        if not love.mouse.isDown(1) then
+            mouseClick = false
         end
 
         -- Draw button based on state
@@ -694,6 +737,7 @@ end
         local textY = y + (height - textHeight) / 2
         love.graphics.print(buttonText, textX, textY)
     end
+
     function drawPlayerHealthBar(x, y, width, heigth)
 
     
@@ -706,17 +750,23 @@ end
     end
 --//////////////--
 function love.update(dt)
-    mouseX = (love.mouse.getX() - love.graphics.getWidth() / 2 ) * worldScale
-    mouseY = (love.mouse.getY() - love.graphics.getHeight() / 2 ) * worldScale
+    worldScale = baseZoom + additionalZoom
+    mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
+    mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
     updateEnemies(dt)
     updateProjectiles(dt)
     updateTower(dt)
     if player.buildmode then
         cam.x = base.body:getX()
         cam.y = base.body:getY()
-        worldScale = player.buildZoom
-        if love.mouse.isDown(2) then
-            createTower(mouseX, mouseY, "gun")
+        baseZoom = player.buildZoom
+        if love.mouse.isDown(1) and not mouseClick then
+            createTower(mouseX, mouseY, selectedTower)
+            mouseClick = true  -- Set the flag to true when a tower is placed
+        end
+
+        if not love.mouse.isDown(1) then
+            mouseClick = false
         end
     elseif player.attributes.isInJet then
         movePlayerInJet(dt)
@@ -731,7 +781,6 @@ function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
     love.graphics.setColor(1, 1, 1)
     cam:attach()
-
         local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
         
         -- Draw temporary Background
@@ -743,11 +792,13 @@ function love.draw()
         drawEnemies()
         drawTower()
         if player.buildmode then
-            love.graphics.setColor(0, 1, 0, 0.2)
-            love.graphics.rectangle("fill", base.body:getX(), - 100, - 200, 1000)
-            love.graphics.setColor(0, 1, 0, 0.2)
-            love.graphics.rectangle("line", base.body:getX(), - 100, - 200, - 1000)
+            love.graphics.setColor(0, 1, 0, 0.1)
+            love.graphics.rectangle("fill", base.body:getX(), - 10^10, - base.communictaionDistance, 10^20)
+            love.graphics.setColor(0, 1, 0, 0.1)
+            love.graphics.rectangle("line", base.body:getX(), - 10^10, - base.communictaionDistance, 10^20)
         end
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(base.texture, base.layer1, base.body:getX() - 32, base.body:getY() - 32)
         drawProjectiles()
         
         -- draw player jet shadow
@@ -758,16 +809,15 @@ function love.draw()
         love.graphics.draw(particleSystem.muzzleFlash, 0 ,0)
         
         -- Draw the player jet 
-        love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
-        drawExplosionParticles()
+            love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+            drawExplosionParticles()
 
-        love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.direction) * 50, playerY + math.sin(player.jet.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
-        love.graphics.setColor(1, 0, 0)
-        love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
-        -- Draw Enemies
-        
-    
-        love.graphics.line(mouseX, mouseY, base.body:getX(), base.body:getY())
+            love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.direction) * 50, playerY + math.sin(player.jet.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+            love.graphics.setColor(1, 0, 0)
+            love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+        -- Draw base layer 2
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(base.texture, base.layer2, base.body:getX() - 32, base.body:getY() - 32)
 
 
 
@@ -790,10 +840,31 @@ function love.keypressed(key, scancode, isrepeat)
         end
     end 
     if key == "q" then 
-        player.attributes.jet.WASDamingMode = not player.attributes.jet.WASDamingMode
+        player.buildmode = not player.buildmode
     end 
     if key == "space" then 
         createTower(player.jet.body:getX(), player.jet.body:getY(), "gun")
     end 
+    if key == "1" then
+        selectedTower = "gun"
+    end
+    if key == "2" then
+        selectedTower = "communication"
+    end
+    if key == "3" then
+        selectedTower = "bigCommunication"
+    end
+    if key == "4" then
+        selectedTower = "gun"
+    end
+
+end
+
+function love.wheelmoved(x, y)
+    if player.buildmode then
+        additionalZoom = additionalZoom + y / 100
+    else
+        additionalZoom = 0
+    end
 end
 --Hello World
