@@ -86,8 +86,8 @@ function love.load()
             turningSpeed = 0.03,
             range = 150,
             cooldown = 0.1,
-            reloadTime = 2,
-            barrage = 10,
+            reloadTime = 5,
+            barrage = 5,
             target = "air",
             projectile = "missile",
             isOnGround = true,
@@ -154,7 +154,7 @@ function love.load()
             hasAutoAim = false
         },
         missile = {
-            speed = 100,
+            speed = 150,
             dmg = 20,
             aoe = 10,
             hasAutoAim = true
@@ -405,8 +405,8 @@ end
             
             
             if enemy.reloadTimer <= 0 then
-                if enemy.cooldownTimer < 0 then
-                    createProjectile(enemy.projectile, enemy.x, enemy.y, enemy.direction, 150, currentSpeed, 7, 7, false, enemy.range)
+                if enemy.cooldownTimer < 0 and love.physics.getDistance(enemy.fixture, enemy.lockedTarget) < enemy.range + 50 then
+                    createProjectile(enemy.projectile, enemy.x, enemy.y, enemy.direction, 150, currentSpeed, 7, 7, false, enemy.range, enemy.lockedTarget)
                     enemy.cooldownTimer = enemy.cooldown
                     enemy.barrageCounter = enemy.barrageCounter - 1
                     if enemy.barrageCounter <= 0 then
@@ -457,6 +457,9 @@ end
             projectile.image = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
             projectile.shape = love.physics.newCircleShape(1)
             projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
+            projectile.target = target
+            projectile.speed = template.speed + momentum
+            projectile.hasAutoAim = template.hasAutoAim
             projectile.body:setAngle(projectile.direction)
 
             projectile.damage = template.dmg
@@ -470,14 +473,14 @@ end
 
             projectile.particle = {}
             projectile.particle.trail = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
-            projectile.particle.trail:setParticleLifetime(0, 0.5)
+            projectile.particle.trail:setParticleLifetime(0, 0.17)
             projectile.particle.trail:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,1 ,0,0,0,0.5)
-            projectile.particle.trail:setSpread(0.2)
-            projectile.particle.trail:setSpeed(100, 200)
+            projectile.particle.trail:setSpread(0.5)
+            projectile.particle.trail:setSpeed(20, 30)
             projectile.particle.trail:setSizes(1, 2)
             projectile.particle.trail:setSizeVariation(0.5)
 
-            projectile.body:setLinearVelocity(math.cos(projectile.direction) * (speed + momentum), math.sin(projectile.direction) * (speed + momentum))
+            projectile.body:setLinearVelocity(math.cos(projectile.direction) * projectile.speed, math.sin(projectile.direction) * projectile.speed)
             
             particleSystem.muzzleFlash:setColors(1,1,0,1 ,1,0.5,0,1 ,0,0,0,1)
             particleSystem.muzzleFlash:setSpread(0.5)
@@ -494,16 +497,14 @@ end
         for i, projectile in ipairs(projectiles) do
             local shouldBreak = false
             if projectile.hasAutoAim then
-                if projectile.isShotByPlayer then
-                    for j, enemy in ipairs(enemies) do
-                        projectile.direction = 2 * math.pi
-                    end
-                end
+                projectile.body:setAngle(math.atan2(projectile.target:getBody():getY() - projectile.body:getY(), projectile.target:getBody():getX() - projectile.body:getX()) + (-projectile.direction * 0.5))
+                projectile.direction = projectile.body:getAngle()
+                projectile.body:setLinearVelocity(math.cos(projectile.direction + math.random(-0.5 * math.pi, 0.5 * math.pi)) * projectile.speed, math.sin(projectile.direction + math.random(-0.5 * math.pi, 0.5 * math.pi)) * projectile.speed)
             end
-            projectile.direction = projectile.body:getAngle()
+            
             projectile.particle.trail:setSpeed(100, 200)
             projectile.particle.trail:setPosition(projectile.body:getX(), projectile.body:getY())
-            projectile.particle.trail:setDirection(projectile.direction)
+            projectile.particle.trail:setDirection(projectile.direction - math.pi * 1)
             projectile.particle.trail:emit(8)
             projectile.particle.trail:update(dt)
             if projectile.isShotByPlayer then
@@ -784,8 +785,8 @@ function love.draw()
         local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
         
         -- Draw temporary Background
-        for i = 0, 20, 1 do
-            for j = 0, 20,1 do
+        for i = -40, 60, 1 do
+            for j = -40, 60, 1 do
                 love.graphics.draw(grassImage,i * 32,j * 32)
             end
         end
