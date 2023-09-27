@@ -1,5 +1,4 @@
-function love.load()
-    love.physics.setMeter(64)
+love.physics.setMeter(64)
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
     World = love.physics.newWorld(0, 0, true)
@@ -226,7 +225,6 @@ function love.load()
 
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
-end
 
 function movePlayerInJet(dt)
     local wantedY = 0
