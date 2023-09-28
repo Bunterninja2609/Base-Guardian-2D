@@ -9,8 +9,12 @@ local online
 
 
 function love.update(dt)
-    if state.current ~= "titlescreen"then
+    if state.current == "titlescreen"then
+        
+        
+    elseif state.current == "offline" then
         offline = require("offline")
+    elseif state.current == "online" then
         online = require("online")
     end
 end
@@ -19,7 +23,10 @@ function love.draw()
     love.graphics.setBackgroundColor(0.5,0.5,1)
 end
 function love.keypressed(key)
-    if key == "return" then
+    if key == "1" then
         state.current = "offline"
+    end
+    if key == "2" then
+        state.current = "online"
     end
 end
