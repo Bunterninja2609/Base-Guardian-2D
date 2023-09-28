@@ -1,4 +1,5 @@
-love.physics.setMeter(64)
+--Variables
+    love.physics.setMeter(64)
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
     World = love.physics.newWorld(0, 0, true)
@@ -20,7 +21,7 @@ love.physics.setMeter(64)
     -- Temporary Background
     grassImage = love.graphics.newImage("textures/" .. theme .. "/grass.png")
 
-    
+
     player = {}
         player.buildmode = false
         player.buildZoom = 2
@@ -143,7 +144,7 @@ love.physics.setMeter(64)
         base.layer1 = love.graphics.newQuad(32, 0, 32, 64, base.texture)
         base.layer2 = love.graphics.newQuad(0, 0, 32, 64, base.texture)
         base.communictaionDistance = 64
-    
+
     projectiles = {}
     projectileTemplates = {
         bullet = {
@@ -201,14 +202,14 @@ love.physics.setMeter(64)
 
         }
     }
-    
+
     cam = {}
         cam.x = 0
         cam.y = 0
         cam.vfX = 0
         cam.vfY = 0
         cam.position = love.math.newTransform(cam.x, cam.y)
-    
+
         cam.attach = function()
             cam.position = love.math.newTransform(cam.x, cam.y)
             love.graphics.push()
@@ -226,6 +227,7 @@ love.physics.setMeter(64)
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
+--
 function movePlayerInJet(dt)
     local wantedY = 0
     local wantedX = 0
