@@ -200,6 +200,17 @@
             target = "optional",
             health = 300,
 
+        },
+        minigun = {
+            texture = love.graphics.newImage("textures/".. theme .. "/tower/minigun.png"),
+            range = 100,
+            isCommunication = false,
+            cooldown = 0.01,
+            barrage = 20,
+            projectile = "bullet",
+            target = "optional",
+            health = 400,
+
         }
     }
 
@@ -632,7 +643,14 @@ end
     end
     function updateTower(dt)
         for i, tower in ipairs(tiles) do
-            if tower.target == "none"  or not tower.target:isDestroyed() then
+            if not (tower.target == "none" or tower.target:isDestroyed()) then
+                for j, enemy in ipairs(enemies) do
+                    if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(tower.fixture, tower.target) then
+                        tower.target = enemy.fixture
+                        tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)  
+                    end
+                end
+            elseif tower.target == "none" or tower.target:isDestroyed()then
                 if #enemies > 0 then
                     tower.target = enemies[1].fixture
                 end
@@ -642,7 +660,7 @@ end
                         tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)  
                     end
                 end
-            else
+            elseif tower.target:isDestroyed() then
                 tower.target = "none"
             end
 
@@ -856,7 +874,7 @@ function love.keypressed(key, scancode, isrepeat)
         selectedTower = "bigCommunication"
     end
     if key == "4" then
-        selectedTower = "gun"
+        selectedTower = "minigun"
     end
 
 end
