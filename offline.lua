@@ -547,7 +547,7 @@ end
                 end
             
             end
-            projectile.timer = projectile.timer - dt * 20
+            projectile.timer = projectile.timer - dt * projectile.speed / 10
             if projectile.timer <= 0 and not projectile.body:isDestroyed() then
                 createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 2, 1)
                 projectile.body:destroy()
@@ -660,12 +660,15 @@ end
                         tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)  
                     end
                 end
+                if tower.target == "none" then
+                    tower.direction = math.pi
+                end
             elseif tower.target:isDestroyed() then
                 tower.target = "none"
             end
 
             if tower.cooldownTimer <= 0 and not tower.isCommunication and tower.target ~= "none" then
-                createProjectile("bullet", tower.x, tower.y, tower.direction, 500, 0, 1, 1, true, 300)
+                createProjectile("bullet", tower.x, tower.y, tower.direction, 100, 0, 1, 1, true, 300)
                 tower.cooldownTimer = tower.cooldown
             else
                 tower.cooldownTimer = tower.cooldownTimer - dt
@@ -688,7 +691,6 @@ end
             end
         end
         for i, tower in ipairs(tiles) do
-            
             love.graphics.setColor(0, 0, 0, 0.5)
             love.graphics.draw(tower.texture, tower.layer1, tower.x, tower.y + 1, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
