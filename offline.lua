@@ -887,5 +887,8 @@ function love.wheelmoved(x, y)
     else
         additionalZoom = 0
     end
+    if additionalZoom < -2 * worldScale then
+        additionalZoom = -2 * worldScale
+    end
 end
 --Hello World
