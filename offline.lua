@@ -9,7 +9,7 @@
     theme = "2023"
     particle1 = love.graphics.newImage("textures/"..theme.."/particle1.png")
     selectedTower = "gun"
-
+    worldColor = {0.1,0.1,0.1}
 
     collisionClass = {
         air = 1,
@@ -20,7 +20,11 @@
     }
     -- Temporary Background
     grassImage = love.graphics.newImage("textures/" .. theme .. "/grass.png")
-
+    grassTextures = {}
+    grassTextures[1] = love.graphics.newQuad(0, 0, 32, 32, grassImage)
+    grassTextures[2] = love.graphics.newQuad(32, 0, 32, 32, grassImage)
+    grassTextures[3] = love.graphics.newQuad(32, 32, 32, 32, grassImage)
+    grassTextures[4] = love.graphics.newQuad(0, 32, 32, 32, grassImage)
 
     player = {}
         player.buildmode = false
@@ -239,6 +243,9 @@
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
 --
+function movePlayer()
+    love.graphics.setColor(0, 0, 0)
+end
 function movePlayerInJet(dt)
     local wantedY = 0
     local wantedX = 0
@@ -446,7 +453,7 @@ end
             love.graphics.draw(enemy.texture, enemy.x, enemy.y  + enemy.height, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)  
 
             -- draw enemy
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(worldColor)
             love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)    
             love.graphics.draw(enemy.texture, enemy.x, enemy.y, enemy.direction + 0.5 * math.pi, 1, 1, enemy.texture:getWidth() / 2, enemy.texture:getHeight() / 2)
             love.graphics.setColor(1, 0, 0)   
@@ -563,7 +570,7 @@ end
             love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY()  + projectile.timer / 10, projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
 
 
-            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.setColor(worldColor, 1)
             love.graphics.draw(projectile.particle.trail, 0 ,0)
             love.graphics.draw(projectile.image, projectile.body:getX(), projectile.body:getY(), projectile.direction + math.pi / 2, 1, 1, projectile.image:getWidth() / 2, projectile.image:getHeight() / 2)
         end
@@ -684,9 +691,9 @@ end
     function drawTower()
         for i, tower in ipairs(tiles) do
             if tower.isCommunication and player.buildmode then
-                love.graphics.setColor(0, 1, 0, 0.1)
+                love.graphics.setColor(0, 1, 0, 0.3)
                 love.graphics.circle("fill", tower.x, tower.y, tower.range)
-                love.graphics.setColor(0, 1, 0, 0.1)
+                love.graphics.setColor(0, 1, 0, 0.3)
                 love.graphics.circle("line", tower.x, tower.y, tower.range)
             end
         end
@@ -694,19 +701,19 @@ end
             love.graphics.setColor(0, 0, 0, 0.5)
             love.graphics.draw(tower.texture, tower.layer1, tower.x, tower.y + 1, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(1,1,1)
             love.graphics.draw(tower.texture, tower.layer1, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
  
             love.graphics.setColor(0, 0, 0, 0.5)
             love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y + 1, tower.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(1,1,1)
             love.graphics.draw(tower.texture, tower.layer2, tower.x, tower.y, tower.direction + 0.5 * math.pi, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
             love.graphics.setColor(0, 0, 0, 0.5)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y + 1, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(worldColor)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
 
             love.graphics.setColor(1, 0, 0)   
@@ -774,10 +781,9 @@ function love.update(dt)
     worldScale = baseZoom + additionalZoom
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
-    updateEnemies(dt)
-    updateProjectiles(dt)
-    updateTower(dt)
+    
     if player.buildmode then
+        worldColor = {0.1,0.1,0.1}
         cam.x = base.body:getX()
         cam.y = base.body:getY()
         baseZoom = player.buildZoom
@@ -790,35 +796,43 @@ function love.update(dt)
             mouseClick = false
         end
     elseif player.attributes.isInJet then
+        worldColor = {1,1,1}
         movePlayerInJet(dt)
     else
-        
+        worldColor = {1,1,1}
+        movePlayer()
     end
-    particleSystem.muzzleFlash:update(dt)
-    updateExplosionParticles(dt)
-    World:update(dt)
+    if not player.buildmode then
+        updateEnemies(dt)
+        updateProjectiles(dt)
+        updateTower(dt)
+        particleSystem.muzzleFlash:update(dt)
+        updateExplosionParticles(dt)
+        World:update(dt)
+    end
 end
 function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(worldColor)
     cam:attach()
         local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
         
         -- Draw temporary Background
         for i = -40, 60, 1 do
             for j = -40, 60, 1 do
-                love.graphics.draw(grassImage,i * 32,j * 32)
+                love.graphics.draw(grassImage, grassTextures[math.random(1, 4)],i * 32,j * 32)
             end
         end
         drawEnemies()
-        drawTower()
+        
         if player.buildmode then
-            love.graphics.setColor(0, 1, 0, 0.1)
+            love.graphics.setColor(0, 1, 0, 0.3)
             love.graphics.rectangle("fill", base.body:getX(), - 10^10, - base.communictaionDistance, 10^20)
-            love.graphics.setColor(0, 1, 0, 0.1)
+            love.graphics.setColor(0, 1, 0, 0.3)
             love.graphics.rectangle("line", base.body:getX(), - 10^10, - base.communictaionDistance, 10^20)
         end
-        love.graphics.setColor(1, 1, 1)
+        drawTower()
+        love.graphics.setColor(worldColor)
         love.graphics.draw(base.texture, base.layer1, base.body:getX() - 32, base.body:getY() - 32)
         drawProjectiles()
         
@@ -826,7 +840,7 @@ function love.draw()
         love.graphics.setColor(0, 0, 0, 0.5)
         love.graphics.draw(player.attributes.jet.image, playerX, playerY + player.attributes.jet.height, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
         -- Draw muzzle flash
-        love.graphics.setColor(1, 1, 1)
+        love.graphics.setColor(worldColor)
         love.graphics.draw(particleSystem.muzzleFlash, 0 ,0)
         
         -- Draw the player jet 
@@ -854,7 +868,7 @@ function love.keypressed(key, scancode, isrepeat)
         fullscreen = not fullscreen
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
-    if key == "e" then
+    if key == "m" then
         for i = 1, 10 do
             createEnemy("mobileSurfaceToAir")
             createEnemy("tank")
@@ -866,6 +880,9 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "space" then 
         createTower(player.jet.body:getX(), player.jet.body:getY(), "gun")
     end 
+    if key == "e" then
+        player.attributes.isInJet = not player.attributes.isInJet
+    end
     if key == "1" then
         selectedTower = "gun"
     end
@@ -878,6 +895,7 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "4" then
         selectedTower = "minigun"
     end
+
 
 end
 
