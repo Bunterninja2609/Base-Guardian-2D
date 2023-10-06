@@ -554,7 +554,7 @@ end
                 end
             
             end
-            projectile.timer = projectile.timer - dt * projectile.speed / 10
+            projectile.timer = projectile.timer - 1
             if projectile.timer <= 0 and not projectile.body:isDestroyed() then
                 createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 2, 1)
                 projectile.body:destroy()
