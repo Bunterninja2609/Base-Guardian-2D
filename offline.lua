@@ -29,6 +29,11 @@
     player = {}
         player.buildmode = false
         player.buildZoom = 2
+        player.body = love.physics.newBody(World, 1000, 300, "dynamic")
+        player.shape = love.physics.newCircleShape(5)
+        player.fixture = love.physics.newFixture(player.body, player.shape)
+        player.fixture:setCategory(collisionClass.friendly, collisionClass.ground)
+        player.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
             player.jet = {}
             player.jet.body = love.physics.newBody(World, 0, 300, "dynamic")
             player.jet.shape = love.physics.newCircleShape(10)
@@ -142,7 +147,7 @@
     }
     base = {}
         base.body = love.physics.newBody(World, 1000, 300, "static")
-        base.shape = love.physics.newCircleShape(10)
+        base.shape = love.physics.newRectangleShape(32, 64)
         base.fixture = love.physics.newFixture(base.body, base.shape)
         base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
         base.layer1 = love.graphics.newQuad(32, 0, 32, 64, base.texture)
@@ -244,7 +249,23 @@
 
 --
 function movePlayer()
-    love.graphics.setColor(0, 0, 0)
+    local wantedY = 0
+    local wantedX = 0
+    if love.keyboard.isDown("w") then
+        wantedY = -1  -- Move up
+    elseif love.keyboard.isDown("s") then
+        wantedY = 1   -- Move down
+    end
+
+    if love.keyboard.isDown("a") then
+        wantedX = -1  -- Move left
+    elseif love.keyboard.isDown("d") then
+        wantedX = 1   -- Move right
+    end
+    player.body:setLinearVelocity(wantedX * 20,wantedY * 20)
+    cam.x = player.body:getX()
+    cam.y = player.body:getY()
+
 end
 function movePlayerInJet(dt)
     local wantedY = 0
@@ -820,7 +841,7 @@ function love.draw()
         -- Draw temporary Background
         for i = -40, 60, 1 do
             for j = -40, 60, 1 do
-                love.graphics.draw(grassImage, grassTextures[math.random(1, 4)],i * 32,j * 32)
+                love.graphics.draw(grassImage, grassTextures[i*j%3+1],i * 32,j * 32)
             end
         end
         drawEnemies()
@@ -833,7 +854,7 @@ function love.draw()
         end
         drawTower()
         love.graphics.setColor(worldColor)
-        love.graphics.draw(base.texture, base.layer1, base.body:getX() - 32, base.body:getY() - 32)
+        love.graphics.draw(base.texture, base.layer1, base.body:getX() - 16, base.body:getY() - 32)
         drawProjectiles()
         
         -- draw player jet shadow
@@ -852,8 +873,8 @@ function love.draw()
             love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
         -- Draw base layer 2
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(base.texture, base.layer2, base.body:getX() - 32, base.body:getY() - 32)
-
+        love.graphics.draw(base.texture, base.layer2, base.body:getX() - 16, base.body:getY() - 32)
+        love.graphics.circle("fill", player.body:getX(), player.body:getY(), 5)
 
 
 
