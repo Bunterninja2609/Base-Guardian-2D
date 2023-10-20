@@ -56,7 +56,23 @@
                     player.attributes.jet.height = 10
                     player.attributes.jet.WASDamingMode = true
                     player.attributes.jet.cooldown = 0.1
-                    player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
+                    player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown^
+
+                    player.attributes.jet.upgrades = {
+                        research = {
+                            isBought = false,
+                            price = {7,"gold"},
+                            unlocked = {
+                                mobility = {
+                                    isBought = true,
+                                    price = {0, "free"}
+                                    unlocked = {}
+                                }
+                                weapons = {}
+                                shields = {}
+                            }
+                        }
+                    }
         
     enemies = {}
     enemyStats = {
