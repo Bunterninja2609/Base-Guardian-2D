@@ -9,9 +9,9 @@ local width = love.graphics.getWidth()
 local height = love.graphics.getHeight()
 
 function drawMode(x, y, localWidth, localHeight, mode)
+    
     love.graphics.setColor(0 ,0 ,0 ,0.5)
     love.graphics.rectangle("fill", x + 10, y + 10, localWidth, localHeight, 30)
-
     love.graphics.setColor(1 ,1 ,1 ,1)
     love.graphics.rectangle("fill", x , y , localWidth, localHeight, 30)
 
@@ -32,8 +32,9 @@ function love.update(dt)
         online = require("online")
     end
 end
-function love.draw()      
+function love.draw()
     love.window.setFullscreen(true, "desktop")
+    love.graphics.setBackgroundColor(0.5,0.5,1)
     love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
     drawMode( 50, 50, 550, height - 100, 10, nil)
     drawMode( width - 50 -550, 50, 550, height - 100, 10, nil)
@@ -48,4 +49,3 @@ function love.keypressed(key)
         state.current = "online"
     end
 end
-                                
