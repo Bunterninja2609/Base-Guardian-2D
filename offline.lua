@@ -275,7 +275,7 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 36
+    waves = 0
 --
 function movePlayer()
     local wantedY = 0
@@ -786,6 +786,10 @@ end
 
             love.graphics.setColor(worldColor)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
+            love.graphics.setColor(1, 0, 0)  
+            if not tower.target == "none" then
+                love.graphics.polygon("fill",tower.x, tower.y, tower.target:getX(), tower.target:getY(), 0, 0)
+            end
 
             love.graphics.setColor(1, 0, 0)   
         love.graphics.rectangle("fill", tower.x  - tower.texture:getWidth() / 6, tower.y - tower.texture:getHeight() / 2, tower.texture:getWidth() / 3, 1) 
