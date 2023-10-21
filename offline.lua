@@ -367,11 +367,11 @@ function createWave()
     for i = 1, 8 * math.atan(waves^(1/3)), 1 do
         createEnemy("tank")
     end
-    for i = 1, 0.0001 * 1.2^(waves+20)-2, 1 do
-        createEnemy("bomber1")
-    end
     for i = 1, waves/3 - 5.5, 1 do
         createEnemy("mobileSurfaceToAir")
+    end
+    for i = 1, (math.cos((waves * math.pi)%1) + 1) * waves/4, 1 do
+        createEnemy("mortar")
     end
     for i = 1, 2* 1.1^(waves-19)-0.3, 1 do
         createEnemy("jet1")
@@ -379,10 +379,9 @@ function createWave()
     for i = 1, waves/3 - 9, 1 do
         createEnemy("jet2")
     end
-    for i = 1, 4 * (2 * math.sin(waves - 14.5)+ 0.001 * (waves - 11.5) ^ 3 - 1.6), 1 do
-        createEnemy("mortar")
+    for i = 1, 0.0001 * 1.2^(waves+20)-2, 1 do
+        createEnemy("bomber1")
     end
-    
 end
 --enemies--
     function createEnemy(type)
@@ -391,6 +390,7 @@ end
         local enemy = {}  
             enemy.texture = enemyTemplate.texture
             enemy.body = love.physics.newBody(World, 100, math.random(0, 100), "dynamic")
+            enemy.body:setAngularDamping(1000)
             enemy.shape = love.physics.newCircleShape(enemy.texture:getWidth() / 2)
             enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
             enemy.x = 0
@@ -415,11 +415,11 @@ end
             enemy.direction = 0 * math.pi
         if enemyTemplate.isOnGround then
             enemy.fixture:setCategory(collisionClass.enemy, collisionClass.ground)
-            enemy.fixture:setMask(collisionClass.air)
+            enemy.fixture:setMask(collisionClass.air, collisionClass.enemy)
             enemy.height = 1
         else
             enemy.fixture:setCategory(collisionClass.enemy, collisionClass.air)
-            enemy.fixture:setMask(collisionClass.ground)
+            enemy.fixture:setMask(collisionClass.ground, collisionClass.enemy)
             enemy.height = 10
         end
         table.insert(enemies, enemy)
