@@ -29,6 +29,11 @@
     player = {}
         player.buildmode = false
         player.buildZoom = 2
+        player.body = love.physics.newBody(World, 1000, 300, "dynamic")
+        player.shape = love.physics.newCircleShape(5)
+        player.fixture = love.physics.newFixture(player.body, player.shape)
+        player.fixture:setCategory(collisionClass.friendly, collisionClass.ground)
+        player.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
             player.jet = {}
             player.jet.body = love.physics.newBody(World, 0, 300, "dynamic")
             player.jet.shape = love.physics.newCircleShape(10)
@@ -52,6 +57,22 @@
                     player.attributes.jet.WASDamingMode = true
                     player.attributes.jet.cooldown = 0.1
                     player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
+
+                    player.attributes.jet.upgrades = {
+                        research = {
+                            isBought = false,
+                            price = {7,"gold"},
+                            unlocked = {
+                                mobility = {
+                                    isBought = true,
+                                    price = {0, "free"},
+                                    unlocked = {}
+                                },
+                                weapons = {},
+                                shields = {}
+                            }
+                        }
+                    }
         
     enemies = {}
     enemyStats = {
@@ -142,7 +163,7 @@
     }
     base = {}
         base.body = love.physics.newBody(World, 1000, 300, "static")
-        base.shape = love.physics.newCircleShape(10)
+        base.shape = love.physics.newChainShape(true, 32, 0, 16, 0, 0, 16, 0, 48, 16, 64, 32, 64,  32,57, 16, 57, 7, 48, 7, 16, 16, 7, 32, 7)
         base.fixture = love.physics.newFixture(base.body, base.shape)
         base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
         base.layer1 = love.graphics.newQuad(32, 0, 32, 64, base.texture)
@@ -167,6 +188,18 @@
             speed = 60,
             dmg = 15,
             aoe = 0,
+            hasAutoAim = false
+        },
+        bomb = {
+            speed = 10,
+            dmg = 90,
+            aoe = 15,
+            hasAutoAim = false
+        },
+        grenade = {
+            speed = 10,
+            dmg = 20,
+            aoe = 15,
             hasAutoAim = false
         }
     }
@@ -242,9 +275,27 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
+    waves = 36
 --
 function movePlayer()
-    love.graphics.setColor(0, 0, 0)
+    local wantedY = 0
+    local wantedX = 0
+    baseZoom = 10
+    if love.keyboard.isDown("w") then
+        wantedY = -1  -- Move up
+    elseif love.keyboard.isDown("s") then
+        wantedY = 1   -- Move down
+    end
+
+    if love.keyboard.isDown("a") then
+        wantedX = -1  -- Move left
+    elseif love.keyboard.isDown("d") then
+        wantedX = 1   -- Move right
+    end
+    player.body:setLinearVelocity(wantedX * 20,wantedY * 20)
+    cam.x = player.body:getX()
+    cam.y = player.body:getY()
+
 end
 function movePlayerInJet(dt)
     local wantedY = 0
@@ -312,14 +363,34 @@ function movePlayerInJet(dt)
         player.attributes.jet.cooldownTimer = player.attributes.jet.cooldownTimer - dt
     end
 end
-
+function createWave()
+    for i = 1, 8 * math.atan(waves^(1/3)), 1 do
+        createEnemy("tank")
+    end
+    for i = 1, 0.0001 * 1.2^(waves+20)-2, 1 do
+        createEnemy("bomber1")
+    end
+    for i = 1, waves/3 - 5.5, 1 do
+        createEnemy("mobileSurfaceToAir")
+    end
+    for i = 1, 2* 1.1^(waves-19)-0.3, 1 do
+        createEnemy("jet1")
+    end
+    for i = 1, waves/3 - 9, 1 do
+        createEnemy("jet2")
+    end
+    for i = 1, 4 * (2 * math.sin(waves - 14.5)+ 0.001 * (waves - 11.5) ^ 3 - 1.6), 1 do
+        createEnemy("mortar")
+    end
+    
+end
 --enemies--
     function createEnemy(type)
         local enemyTemplate = enemyStats[type]
 
         local enemy = {}  
             enemy.texture = enemyTemplate.texture
-            enemy.body = love.physics.newBody(World, math.random(-1000, 1000), math.random(-1000, 1000), "dynamic")
+            enemy.body = love.physics.newBody(World, 100, math.random(0, 100), "dynamic")
             enemy.shape = love.physics.newCircleShape(enemy.texture:getWidth() / 2)
             enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
             enemy.x = 0
@@ -783,7 +854,7 @@ function love.update(dt)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
     
     if player.buildmode then
-        worldColor = {0.1,0.1,0.1}
+        worldColor = {0.3,0.3,0.3}
         cam.x = base.body:getX()
         cam.y = base.body:getY()
         baseZoom = player.buildZoom
@@ -820,7 +891,7 @@ function love.draw()
         -- Draw temporary Background
         for i = -40, 60, 1 do
             for j = -40, 60, 1 do
-                love.graphics.draw(grassImage, grassTextures[math.random(1, 4)],i * 32,j * 32)
+                love.graphics.draw(grassImage, grassTextures[(math.floor(i/2)+j)%3+1],i * 32,j * 32)
             end
         end
         drawEnemies()
@@ -833,7 +904,7 @@ function love.draw()
         end
         drawTower()
         love.graphics.setColor(worldColor)
-        love.graphics.draw(base.texture, base.layer1, base.body:getX() - 32, base.body:getY() - 32)
+        love.graphics.draw(base.texture, base.layer1, base.body:getX(), base.body:getY())
         drawProjectiles()
         
         -- draw player jet shadow
@@ -851,9 +922,14 @@ function love.draw()
             love.graphics.setColor(1, 0, 0)
             love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
         -- Draw base layer 2
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(base.texture, base.layer2, base.body:getX() - 32, base.body:getY() - 32)
 
+        love.graphics.circle("fill", player.body:getX(), player.body:getY(), 5)
+        love.graphics.setColor(1, 1, 1, 1)
+        if player.body:getX() > 0 + base.body:getX() and player.body:getX() < 32 + base.body:getX() and player.body:getY() > 0 + base.body:getY() and player.body:getY() < 64 + base.body:getY() then 
+            love.graphics.setColor(1, 1, 1, 0.5)
+        end
+        love.graphics.draw(base.texture, base.layer2, base.body:getX(), base.body:getY())
+        
 
 
 
@@ -869,10 +945,8 @@ function love.keypressed(key, scancode, isrepeat)
         love.window.setFullscreen(fullscreen, "desktop") 	
     end 
     if key == "m" then
-        for i = 1, 10 do
-            createEnemy("mobileSurfaceToAir")
-            createEnemy("tank")
-        end
+        waves = waves + 1
+        createWave()
     end 
     if key == "q" then 
         player.buildmode = not player.buildmode
