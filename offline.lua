@@ -176,31 +176,36 @@
             speed = 200,
             dmg = 10,
             aoe = 0,
-            hasAutoAim = false
+            hasAutoAim = false,
+            texture = love.graphics.newImage("textures/" .. theme .. "/particle1.png")
         },
         missile = {
             speed = 150,
             dmg = 20,
             aoe = 10,
-            hasAutoAim = true
+            hasAutoAim = true,
+            texture = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
         },
         shell = {
             speed = 60,
             dmg = 15,
             aoe = 0,
-            hasAutoAim = false
+            hasAutoAim = false,
+            texture = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
         },
         bomb = {
             speed = 10,
             dmg = 90,
             aoe = 15,
-            hasAutoAim = false
+            hasAutoAim = false,
+            texture = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
         },
         grenade = {
             speed = 10,
             dmg = 20,
             aoe = 15,
-            hasAutoAim = false
+            hasAutoAim = false,
+            texture = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
         }
     }
     tiles = {}
@@ -275,7 +280,7 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 0
+    waves = 18
 --
 function movePlayer()
     local wantedY = 0
@@ -426,7 +431,7 @@ end
     end
     function updateEnemies(dt)
         for i, enemy in ipairs(enemies) do
-            enemy.lockedTarget = player.jet.fixture
+            enemy.lockedTarget = base.fixture
             if enemy.target == "ground" then    
                 for j, tower in ipairs(tiles) do
                     if love.physics.getDistance(enemy.fixture, tower.fixture) < love.physics.getDistance(enemy.fixture, enemy.lockedTarget) then
@@ -543,7 +548,7 @@ end
             projectile.timer = range
             projectile.body = love.physics.newBody(World, x + math.cos(projectile.direction) * offsetX, y + math.sin(projectile.direction) * offsetY, "dynamic")
             projectile.body:setAngularDamping(50)
-            projectile.image = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
+            projectile.image = template.texture
             projectile.shape = love.physics.newCircleShape(1)
             projectile.fixture = love.physics.newFixture(projectile.body, projectile.shape)
             projectile.target = target
@@ -585,10 +590,10 @@ end
     function updateProjectiles(dt)
         for i, projectile in ipairs(projectiles) do
             local shouldBreak = false
-            if projectile.hasAutoAim then
-                projectile.body:setAngle(math.atan2(projectile.target:getBody():getY() - projectile.body:getY(), projectile.target:getBody():getX() - projectile.body:getX()) + (-projectile.direction * 0.5))
+            if projectile.hasAutoAim and not projectile.body:isDestroyed() and not projectile.target:isDestroyed() then
+                projectile.body:setAngle(math.atan2(projectile.target:getBody():getY() - projectile.body:getY(), projectile.target:getBody():getX() - projectile.body:getX()))
                 projectile.direction = projectile.body:getAngle()
-                projectile.body:setLinearVelocity(math.cos(projectile.direction + math.random(-0.5 * math.pi, 0.5 * math.pi)) * projectile.speed, math.sin(projectile.direction + math.random(-0.5 * math.pi, 0.5 * math.pi)) * projectile.speed)
+                projectile.body:setLinearVelocity(math.cos(projectile.direction) * projectile.speed, math.sin(projectile.direction) * projectile.speed)
             end
             
             projectile.particle.trail:setSpeed(100, 200)
@@ -721,27 +726,15 @@ end
     end
     function updateTower(dt)
         for i, tower in ipairs(tiles) do
-            if not (tower.target == "none" or tower.target:isDestroyed()) then
+            if #enemies > 0 then
+                tower.target = enemies[1].fixture
                 for j, enemy in ipairs(enemies) do
                     if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(tower.fixture, tower.target) then
                         tower.target = enemy.fixture
-                        tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)  
                     end
                 end
-            elseif tower.target == "none" or tower.target:isDestroyed()then
-                if #enemies > 0 then
-                    tower.target = enemies[1].fixture
-                end
-                for j, enemy in ipairs(enemies) do
-                    if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(tower.fixture, tower.target) then
-                        tower.target = enemy.fixture
-                        tower.direction = math.atan2(tower.target:getBody():getY() - tower.y, tower.target:getBody():getX() - tower.x)  
-                    end
-                end
-                if tower.target == "none" then
-                    tower.direction = math.pi
-                end
-            elseif tower.target:isDestroyed() then
+                tower.direction = math.atan2(tower.target:getBody():getY() - tower.y,  tower.target:getBody():getX() -tower.x)
+            else
                 tower.target = "none"
             end
 
@@ -787,8 +780,8 @@ end
             love.graphics.setColor(worldColor)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
             love.graphics.setColor(1, 0, 0)  
-            if not tower.target == "none" then
-                love.graphics.polygon("fill",tower.x, tower.y, tower.target:getX(), tower.target:getY(), 0, 0)
+            if tower.target ~= "none" and not tower.target:isDestroyed() then
+                love.graphics.line(tower.x, tower.y, tower.target:getBody():getX(), tower.target:getBody():getY())
             end
 
             love.graphics.setColor(1, 0, 0)   
