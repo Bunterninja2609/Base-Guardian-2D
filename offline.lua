@@ -276,7 +276,7 @@
     particleSystem.muzzleFlash = love.graphics.newParticleSystem(love.graphics.newImage("textures/"..theme.."/particle1.png"), 256)
     particleSystem.muzzleFlash:setParticleLifetime(0, 0.2)
     explosions = {}
-
+    mine = {}
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
@@ -301,6 +301,52 @@ function movePlayer()
     cam.x = player.body:getX()
     cam.y = player.body:getY()
 
+    local distance = math.sqrt((mouseX - player.body:getX())^2 + (mouseY - player.body:getY())^2)
+    local vector = {
+        y =(mouseY - player.body:getY()) / distance,
+        x = (mouseX - player.body:getX()) / distance
+    }
+    local points = {}
+    for i = 0, distance do
+        local point = {
+            x = player.body:getX() + i * vector.x,
+            y = player.body:getY() + i * vector.y
+        }
+        table.insert(points, point)
+    end
+    for j, point in ipairs(points) do   
+        for i, tile in ipairs(mine) do
+            if tile.body:getX() > point.x and tile.body:getY() > point.y and tile.body:getX() + 16 < point.x and tile.body:getY() + 16 < point.y then
+                tile.health = 0
+            end
+        end    
+    end
+end
+function generateMine()
+    local height = 10
+    local width = 10
+    for i = 0, height do
+        for j = 0, width do
+            local tile = {}
+            tile.body = love.physics.newBody(World, base.body:getX()+32 + i*16,base.body:getY() - height/2*16 + j*16,"static")
+            tile.shape = love.physics.newRectangleShape(8, 8, 16, 16, 0)
+            tile.fixture = love.physics.newFixture(tile.body, tile.shape)
+            tile.hitpoints = 10
+            table.insert(mine, tile)
+        end
+    end
+end
+function drawMine()
+    for i, tile in ipairs(mine) do
+        love.graphics.setColor(0.5,0.5,0.5)
+        love.graphics.rectangle("fill", tile.body:getX(), tile.body:getY(), 16 ,16)
+        love.graphics.setColor(1,1,1)
+        love.graphics.rectangle("line", tile.body:getX(), tile.body:getY(), 16 ,16)
+        if tile.hitpoints <= 0 then
+            tile.fixture:destroy()
+            table.remove(mine, i)
+        end
+    end
 end
 function movePlayerInJet(dt)
     local wantedY = 0
@@ -845,6 +891,7 @@ end
         end
     end
 --//////////////--
+generateMine()
 function love.update(dt)
     worldScale = baseZoom + additionalZoom
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
@@ -926,7 +973,7 @@ function love.draw()
             love.graphics.setColor(1, 1, 1, 0.5)
         end
         love.graphics.draw(base.texture, base.layer2, base.body:getX(), base.body:getY())
-        
+        drawMine()
 
 
 
