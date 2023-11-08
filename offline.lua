@@ -30,6 +30,8 @@
         player.buildmode = false
         player.buildZoom = 2
         player.body = love.physics.newBody(World, 1000, 300, "dynamic")
+        player.timer = 0
+        player.dashDirection = {x = 0, y = 0}
         player.shape = love.physics.newCircleShape(5)
         player.fixture = love.physics.newFixture(player.body, player.shape)
         player.fixture:setCategory(collisionClass.friendly, collisionClass.ground)
@@ -282,7 +284,7 @@
 
     waves = 18
 --
-function movePlayer()
+function movePlayer(dt)
     local wantedY = 0
     local wantedX = 0
     baseZoom = 10
@@ -300,27 +302,23 @@ function movePlayer()
     player.body:setLinearVelocity(wantedX * 20,wantedY * 20)
     cam.x = player.body:getX()
     cam.y = player.body:getY()
-
-    local distance = math.sqrt((mouseX - player.body:getX())^2 + (mouseY - player.body:getY())^2)
-    local vector = {
-        y =(mouseY - player.body:getY()) / distance,
-        x = (mouseX - player.body:getX()) / distance
-    }
-    local points = {}
-    for i = 0, distance do
-        local point = {
-            x = player.body:getX() + i * vector.x,
-            y = player.body:getY() + i * vector.y
-        }
-        table.insert(points, point)
+    
+    if love.mouse.isDown(1) and canDash then
+        player.body:setLinearVelocity(mouseX - player.body:getX(), mouseY - player.body:getY())
+        player.dashDirection.x, player.dashDirection.y = mouseX - player.body:getX(), mouseY - player.body:getY()
+        canDash = false
+        player.timer = 2
+    elseif not love.mouse.isDown() and player.timer <= 0 then
+        canDash = true
+    elseif player.timer > 0 then
+        player.body:setLinearVelocity(player.dashDirection.x * 4, player.dashDirection.y * 4)
     end
-    for j, point in ipairs(points) do   
-        for i, tile in ipairs(mine) do
-            if tile.body:getX() > point.x and tile.body:getY() > point.y and tile.body:getX() + 16 < point.x and tile.body:getY() + 16 < point.y then
-                tile.health = 0
-            end
-        end    
+    for i, tile in ipairs(mine) do
+        if player.body:isTouching(tile.body) then
+            tile.hitpoints = tile.hitpoints - 1
+        end
     end
+    player.timer = player.timer - dt
 end
 function generateMine()
     local height = 10
@@ -346,6 +344,7 @@ function drawMine()
             tile.fixture:destroy()
             table.remove(mine, i)
         end
+        love.graphics.line(player.body:getX(), player.body:getY(), mouseX, mouseY)
     end
 end
 function movePlayerInJet(dt)
@@ -915,7 +914,7 @@ function love.update(dt)
         movePlayerInJet(dt)
     else
         worldColor = {1,1,1}
-        movePlayer()
+        movePlayer(dt)
     end
     if not player.buildmode then
         updateEnemies(dt)
