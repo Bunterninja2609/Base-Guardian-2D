@@ -27,6 +27,10 @@
     grassTextures[4] = love.graphics.newQuad(0, 32, 32, 32, grassImage)
 
     player = {}
+        player.inventory = {
+            gold = 0,
+            iron = 0
+        }
         player.buildmode = false
         player.buildZoom = 2
         player.body = love.physics.newBody(World, 1000, 300, "dynamic")
@@ -46,7 +50,7 @@
             player.jet.wantedDirection = 0 * math.pi
             
             player.attributes = {}
-                player.attributes.isInJet = true
+                player.attributes.isInJet = false
                 player.attributes.jet = {}
                     player.attributes.jet.health = 200
                     player.attributes.jet.maxHealth = 200
@@ -307,7 +311,7 @@ function movePlayer(dt)
         player.body:setLinearVelocity(mouseX - player.body:getX(), mouseY - player.body:getY())
         player.dashDirection.x, player.dashDirection.y = mouseX - player.body:getX(), mouseY - player.body:getY()
         canDash = false
-        player.timer = 2
+        player.timer = 1
     elseif not love.mouse.isDown() and player.timer <= 0 then
         canDash = true
     elseif player.timer > 0 then
@@ -316,34 +320,67 @@ function movePlayer(dt)
     for i, tile in ipairs(mine) do
         if player.body:isTouching(tile.body) then
             tile.hitpoints = tile.hitpoints - 1
+            player.timer = 0.01
+            player.body:setLinearVelocity(player.dashDirection.x * -4, player.dashDirection.y * -4)
         end
     end
     player.timer = player.timer - dt
+
+    if love.keyboard.isDown("e") and love.physics.getDistance(player.fixture, player.jet.fixture) < 32 then
+        player.attributes.isInJet = true
+    end
 end
 function generateMine()
-    local height = 10
-    local width = 10
+    local height = 50
+    local width = 100
     for i = 0, height do
         for j = 0, width do
             local tile = {}
-            tile.body = love.physics.newBody(World, base.body:getX()+32 + i*16,base.body:getY() - height/2*16 + j*16,"static")
+            tile.body = love.physics.newBody(World, base.body:getX() + 128 + i*16,base.body:getY() - height/2*16 + j*16,"static")
             tile.shape = love.physics.newRectangleShape(8, 8, 16, 16, 0)
             tile.fixture = love.physics.newFixture(tile.body, tile.shape)
             tile.hitpoints = 10
+            tile.isGoldOre = math.random(0, 100)
+            tile.isIronOre = math.random(0, 70)
             table.insert(mine, tile)
+        end
+    end
+    for i, tile in ipairs(mine) do
+        if i > width + 1 and i < #mine - width - 1 and (mine[i-1].isGoldOre == 1 or mine[i+1].isGoldOre == 1 or mine[i-width].isGoldOre == 1 or mine[i+width].isGoldOre == 1 ) then
+            tile.isGoldOre = math.random(0,2)
+        end
+    end
+    for i, tile in ipairs(mine) do
+        if tile.isGoldOre ~= 1 and i > width + 1 and i < #mine - width - 1 and (mine[i-1].isIronOre == 1 or mine[i+1].isIronOre == 1 or mine[i-width].isIronOre == 1 or mine[i+width].isIronOre == 1 ) then
+            tile.isIronOre = math.random(0,1)
         end
     end
 end
 function drawMine()
     for i, tile in ipairs(mine) do
-        love.graphics.setColor(0.5,0.5,0.5)
+       
+        if tile.hitpoints <= 0 then
+            if tile.isGoldOre == 1 then
+                player.inventory.gold = player.inventory.gold + 3
+            end
+            if tile.isIronOre == 1 then
+                player.inventory.iron = player.inventory.iron + 3
+            end
+            tile.fixture:destroy()
+            table.remove(mine, i)
+            
+        end
+        if tile.isGoldOre == 1 then
+            love.graphics.setColor(0.5,0.5,0)
+        elseif tile.isIronOre == 1 then
+            love.graphics.setColor(0.7,0.7,0.7)
+        else
+            love.graphics.setColor(0.5,0.5,0.5)
+        end
+        
         love.graphics.rectangle("fill", tile.body:getX(), tile.body:getY(), 16 ,16)
         love.graphics.setColor(1,1,1)
         love.graphics.rectangle("line", tile.body:getX(), tile.body:getY(), 16 ,16)
-        if tile.hitpoints <= 0 then
-            tile.fixture:destroy()
-            table.remove(mine, i)
-        end
         love.graphics.line(player.body:getX(), player.body:getY(), mouseX, mouseY)
     end
 end
@@ -411,6 +448,10 @@ function movePlayerInJet(dt)
         end
     else
         player.attributes.jet.cooldownTimer = player.attributes.jet.cooldownTimer - dt
+    end
+    if love.keyboard.isDown("lshift") and math.sqrt((player.jet.body:getX() - base.body:getX())^2 + (player.jet.body:getY() - base.body:getY() + 128)^2) < 32 then
+        player.attributes.isInJet = false
+        player.attributes.jet.height = 1
     end
 end
 function createWave()
@@ -880,14 +921,17 @@ end
     end
 
     function drawPlayerHealthBar(x, y, width, heigth)
-
-    
         love.graphics.setColor(1, 0 ,0)
         love.graphics.rectangle("fill", x, y, width, heigth)
         if player.attributes.jet.health / player.attributes.jet.maxHealth > 0 then
             love.graphics.setColor(0, 1 ,0)
             love.graphics.rectangle("fill", x, y, width * player.attributes.jet.health / player.attributes.jet.maxHealth, heigth)
         end
+    end
+
+    function drawInventory(x, y, text, font)
+        love.graphics.print("Gold: " .. player.inventory.gold, x, y)
+        love.graphics.print("Iron: " .. player.inventory.iron, x, y + 16)
     end
 --//////////////--
 generateMine()
@@ -903,7 +947,7 @@ function love.update(dt)
         baseZoom = player.buildZoom
         if love.mouse.isDown(1) and not mouseClick then
             createTower(mouseX, mouseY, selectedTower)
-            mouseClick = true  -- Set the flag to true when a tower is placed
+            mouseClick = true  
         end
 
         if not love.mouse.isDown(1) then
@@ -911,10 +955,12 @@ function love.update(dt)
         end
     elseif player.attributes.isInJet then
         worldColor = {1,1,1}
+        player.body:setPosition(base.body:getX() + 16, base.body:getY() + 32)
         movePlayerInJet(dt)
     else
         worldColor = {1,1,1}
         movePlayer(dt)
+        player.jet.body:setPosition(base.body:getX(), base.body:getY() - 128)
     end
     if not player.buildmode then
         updateEnemies(dt)
@@ -980,6 +1026,7 @@ function love.draw()
     drawToggleButton(100, 100, 100, 50, "WASD Steering", love.graphics.getFont(), player.attributes.jet, "WASDamingMode")
     drawToggleButton(100, 200, 100, 50, "buildmode", love.graphics.getFont(), player, "buildmode")
     drawPlayerHealthBar(20, 20, 500, 10)
+    drawInventory(20, 40)
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -997,9 +1044,6 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "space" then 
         createTower(player.jet.body:getX(), player.jet.body:getY(), "gun")
     end 
-    if key == "e" then
-        player.attributes.isInJet = not player.attributes.isInJet
-    end
     if key == "1" then
         selectedTower = "gun"
     end
