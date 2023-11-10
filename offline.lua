@@ -364,7 +364,7 @@ function drawMine()
                 player.inventory.gold = player.inventory.gold + 3
             end
             if tile.isIronOre == 1 then
-                player.inventory.iron = player.inventory.iron + 3
+                player.inventory.iron = player.inventory.iron + 1
             end
             tile.fixture:destroy()
             table.remove(mine, i)
@@ -381,7 +381,6 @@ function drawMine()
         love.graphics.rectangle("fill", tile.body:getX(), tile.body:getY(), 16 ,16)
         love.graphics.setColor(1,1,1)
         love.graphics.rectangle("line", tile.body:getX(), tile.body:getY(), 16 ,16)
-        love.graphics.line(player.body:getX(), player.body:getY(), mouseX, mouseY)
     end
 end
 function movePlayerInJet(dt)
@@ -473,6 +472,9 @@ function createWave()
     for i = 1, 0.0001 * 1.2^(waves+20)-2, 1 do
         createEnemy("bomber1")
     end
+end
+function setCamera(x, y)
+
 end
 --enemies--
     function createEnemy(type)
