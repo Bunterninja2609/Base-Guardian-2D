@@ -26,6 +26,8 @@
     grassTextures[3] = love.graphics.newQuad(32, 32, 32, 32, grassImage)
     grassTextures[4] = love.graphics.newQuad(0, 32, 32, 32, grassImage)
 
+    stoneTexture = love.graphics.newImage("textures/" .. theme .. "/stone.png")
+
     player = {}
         player.inventory = {
             gold = 0,
@@ -46,7 +48,7 @@
             player.jet.fixture = love.physics.newFixture(player.jet.body, player.jet.shape)
             player.jet.fixture:setCategory(collisionClass.friendly, collisionClass.air)
             player.jet.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
-            player.jet.direction = 0 * math.pi
+            player.jet.direction = 1 * math.pi
             player.jet.wantedDirection = 0 * math.pi
             
             player.attributes = {}
@@ -286,7 +288,7 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 18
+    waves = 0
 --
 function movePlayer(dt)
     local wantedY = 0
@@ -304,8 +306,8 @@ function movePlayer(dt)
         wantedX = 1   -- Move right
     end
     player.body:setLinearVelocity(wantedX * 20,wantedY * 20)
-    cam.x = player.body:getX()
-    cam.y = player.body:getY()
+    setCamera(player.body:getX(), player.body:getY())
+    
     
     if love.mouse.isDown(1) and canDash then
         player.body:setLinearVelocity(mouseX - player.body:getX(), mouseY - player.body:getY())
@@ -331,15 +333,15 @@ function movePlayer(dt)
     end
 end
 function generateMine()
-    local height = 50
-    local width = 100
+    local height = 32
+    local width = 512
     for i = 0, height do
         for j = 0, width do
             local tile = {}
-            tile.body = love.physics.newBody(World, base.body:getX() + 128 + i*16,base.body:getY() - height/2*16 + j*16,"static")
+            tile.body = love.physics.newBody(World, base.body:getX() + 128 + j*16,base.body:getY() - height/2*16 + 32 + i*16,"static")
             tile.shape = love.physics.newRectangleShape(8, 8, 16, 16, 0)
             tile.fixture = love.physics.newFixture(tile.body, tile.shape)
-            tile.hitpoints = 10
+            tile.hitpoints = math.floor(j/1)
             tile.isGoldOre = math.random(0, 100)
             tile.isIronOre = math.random(0, 70)
             table.insert(mine, tile)
@@ -375,12 +377,10 @@ function drawMine()
         elseif tile.isIronOre == 1 then
             love.graphics.setColor(0.7,0.7,0.7)
         else
-            love.graphics.setColor(0.5,0.5,0.5)
+            love.graphics.setColor(1 - tile.hitpoints/256, 1 - tile.hitpoints/128, 1 - tile.hitpoints/512)
         end
         
-        love.graphics.rectangle("fill", tile.body:getX(), tile.body:getY(), 16 ,16)
-        love.graphics.setColor(1,1,1)
-        love.graphics.rectangle("line", tile.body:getX(), tile.body:getY(), 16 ,16)
+        love.graphics.draw(stoneTexture, tile.body:getX(), tile.body:getY())
     end
 end
 function movePlayerInJet(dt)
@@ -437,8 +437,7 @@ function movePlayerInJet(dt)
 
     player.jet.body:setLinearVelocity(math.cos(player.jet.direction) * player.attributes.jet.speed, math.sin(player.jet.direction) * player.attributes.jet.speed)
 
-    cam.x = player.jet.body:getX()
-    cam.y = player.jet.body:getY()
+    setCamera(player.jet.body:getX(), player.jet.body:getY())
     baseZoom = player.attributes.jet.scale
     if player.attributes.jet.cooldownTimer <= 0 then
         if love.mouse.isDown(1) then
@@ -451,6 +450,7 @@ function movePlayerInJet(dt)
     if love.keyboard.isDown("lshift") and math.sqrt((player.jet.body:getX() - base.body:getX())^2 + (player.jet.body:getY() - base.body:getY() + 128)^2) < 32 then
         player.attributes.isInJet = false
         player.attributes.jet.height = 1
+        player.body:setPosition(player.jet.body:getPosition())
     end
 end
 function createWave()
@@ -474,7 +474,8 @@ function createWave()
     end
 end
 function setCamera(x, y)
-
+    cam.x = cam.x - (cam.x - x) / 4
+    cam.y = cam.y - (cam.y - y) / 4
 end
 --enemies--
     function createEnemy(type)
@@ -944,8 +945,7 @@ function love.update(dt)
     
     if player.buildmode then
         worldColor = {0.3,0.3,0.3}
-        cam.x = base.body:getX()
-        cam.y = base.body:getY()
+        setCamera(base.body:getX(), base.body:getY())
         baseZoom = player.buildZoom
         if love.mouse.isDown(1) and not mouseClick then
             createTower(mouseX, mouseY, selectedTower)
