@@ -319,13 +319,17 @@ function movePlayer(dt)
     elseif player.timer > 0 then
         player.body:setLinearVelocity(player.dashDirection.x * 4, player.dashDirection.y * 4)
     end
-    for i, tile in ipairs(mine) do
-        if player.body:isTouching(tile.body) then
-            tile.hitpoints = tile.hitpoints - 1
-            player.timer = 0.01
-            player.body:setLinearVelocity(player.dashDirection.x * -4, player.dashDirection.y * -4)
+    if not canDash then
+        for i, tile in ipairs(mine) do
+            if player.body:isTouching(tile.body) then
+                tile.hitpoints = tile.hitpoints - 1
+                tile.hitSound:play()
+                player.timer = 0
+                player.body:setLinearVelocity(player.dashDirection.x * -4, player.dashDirection.y * -4)
+            end
         end
     end
+    
     player.timer = player.timer - dt
 
     if love.keyboard.isDown("e") and love.physics.getDistance(player.fixture, player.jet.fixture) < 32 then
@@ -341,6 +345,7 @@ function generateMine()
             tile.body = love.physics.newBody(World, base.body:getX() + 128 + j*16,base.body:getY() - height/2*16 + 32 + i*16,"static")
             tile.shape = love.physics.newRectangleShape(8, 8, 16, 16, 0)
             tile.fixture = love.physics.newFixture(tile.body, tile.shape)
+            tile.hitSound = love.audio.newSource("sound effects/hit.mp3", "static")
             tile.hitpoints = math.floor(j/1)
             tile.isGoldOre = math.random(0, 100)
             tile.isIronOre = math.random(0, 70)
