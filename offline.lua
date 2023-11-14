@@ -289,11 +289,12 @@
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
     waves = 0
+    waveCooldown = 0
+    waveIsActive = false
 --
 function movePlayer(dt)
     local wantedY = 0
     local wantedX = 0
-    baseZoom = 10
     if love.keyboard.isDown("w") then
         wantedY = -1  -- Move up
     elseif love.keyboard.isDown("s") then
@@ -306,7 +307,7 @@ function movePlayer(dt)
         wantedX = 1   -- Move right
     end
     player.body:setLinearVelocity(wantedX * 20,wantedY * 20)
-    setCamera(player.body:getX(), player.body:getY())
+    setCamera(player.body:getX(), player.body:getY(), 10)
     
     
     if love.mouse.isDown(1) and canDash then
@@ -442,8 +443,7 @@ function movePlayerInJet(dt)
 
     player.jet.body:setLinearVelocity(math.cos(player.jet.direction) * player.attributes.jet.speed, math.sin(player.jet.direction) * player.attributes.jet.speed)
 
-    setCamera(player.jet.body:getX(), player.jet.body:getY())
-    baseZoom = player.attributes.jet.scale
+    setCamera(player.jet.body:getX(), player.jet.body:getY(), player.attributes.jet.scale)
     if player.attributes.jet.cooldownTimer <= 0 then
         if love.mouse.isDown(1) then
             createProjectile("bullet" ,player.jet.body:getX() , player.jet.body:getY() ,player.jet.direction , 500 ,currentSpeed, 15, 15, true, 100)
@@ -478,9 +478,25 @@ function createWave()
         createEnemy("bomber1")
     end
 end
-function setCamera(x, y)
+function setCamera(x, y, scale)
     cam.x = cam.x - (cam.x - x) / 4
     cam.y = cam.y - (cam.y - y) / 4
+    baseZoom = baseZoom - (baseZoom - scale) / 4
+end
+function updateWaves(dt)
+    if not waveIsActive then
+        waveCooldown = waveCooldown + dt
+    else
+        waveCooldown = 0
+    end
+    if waveCooldown >= 30 + (waves + 1 * 2) then
+        waves = waves + 1
+        createWave()
+        waveIsActive = true
+    end
+    if #enemies <= 0 then
+        waveIsActive = false
+    end
 end
 --enemies--
     function createEnemy(type)
@@ -832,7 +848,7 @@ end
                 tower.target = "none"
             end
 
-            if tower.cooldownTimer <= 0 and not tower.isCommunication and tower.target ~= "none" then
+            if tower.cooldownTimer <= 0 and not tower.isCommunication and tower.target ~= "none" and love.physics.getDistance(tower.fixture, tower.target) < tower.range then
                 createProjectile("bullet", tower.x, tower.y, tower.direction, 100, 0, 1, 1, true, 300)
                 tower.cooldownTimer = tower.cooldown
             else
@@ -941,6 +957,13 @@ end
         love.graphics.print("Gold: " .. player.inventory.gold, x, y)
         love.graphics.print("Iron: " .. player.inventory.iron, x, y + 16)
     end
+
+    function drawWaveBar(x, y, width, height)
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.rectangle("fill", x, y, width, height)
+        love.graphics.setColor(0, 0.5, 1)
+        love.graphics.rectangle("fill", x, height + y, width, -height * waveCooldown/(30 + (waves + 1) * 2))
+    end
 --//////////////--
 generateMine()
 function love.update(dt)
@@ -948,10 +971,11 @@ function love.update(dt)
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
     
+    updateWaves(dt)
+
     if player.buildmode then
         worldColor = {0.3,0.3,0.3}
-        setCamera(base.body:getX(), base.body:getY())
-        baseZoom = player.buildZoom
+        setCamera(base.body:getX(), base.body:getY(), player.buildZoom)
         if love.mouse.isDown(1) and not mouseClick then
             createTower(mouseX, mouseY, selectedTower)
             mouseClick = true  
@@ -1034,6 +1058,7 @@ function love.draw()
     drawToggleButton(100, 200, 100, 50, "buildmode", love.graphics.getFont(), player, "buildmode")
     drawPlayerHealthBar(20, 20, 500, 10)
     drawInventory(20, 40)
+    drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
 end
 
 function love.keypressed(key, scancode, isrepeat)
