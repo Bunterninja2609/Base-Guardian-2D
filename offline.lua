@@ -326,9 +326,7 @@ function movePlayer(dt)
         for i, tile in ipairs(mine) do
             if player.body:isTouching(tile.body) then
                 tile.hitpoints = tile.hitpoints - 1
-                tile.ParticleSystem:setSpread(2)
-                tile.ParticleSystem:setSpeed(1, 10)
-                tile.ParticleSystem:emit(32)
+                createExplosionParticles(tile.body:getX() + 8, tile.body:getY() + 8, 2, 2)
                 tile.hitSound:play()
                 player.timer = 0
                 player.body:setLinearVelocity(player.dashDirection.x * -4, player.dashDirection.y * -4)
@@ -340,6 +338,9 @@ function movePlayer(dt)
 
     if love.keyboard.isDown("e") and love.physics.getDistance(player.fixture, player.jet.fixture) < 32 then
         player.attributes.isInJet = true
+    end
+    if love.keyboard.isDown("e") and math.sqrt((player.body:getX() - base.body:getX())^2 + (player.body:getY() - base.body:getY() - 32)^2) < 16 then
+        player.buildmode = true
     end
 end
 function generateMine()
@@ -356,6 +357,7 @@ function generateMine()
             tile.isGoldOre = math.random(0, 100)
             tile.isIronOre = math.random(0, 70)
             tile.particleSystem = love.graphics.newParticleSystem(particle1, 64 )
+            
             table.insert(mine, tile)
         end
     end
