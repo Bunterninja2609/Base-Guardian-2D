@@ -31,7 +31,9 @@
     player = {}
         player.inventory = {
             gold = 0,
-            iron = 0
+            copper = 0,
+            iron = 0,
+            scrap = 0
         }
         player.buildmode = false
         player.buildZoom = 2
@@ -388,6 +390,7 @@ function drawMine()
         
         love.graphics.draw(stoneTexture, tile.body:getX(), tile.body:getY())
     end
+    love.graphics.line(player.body:getX(), player.body:getY(), mouseX, mouseY)
 end
 function movePlayerInJet(dt)
     local wantedY = 0
@@ -956,6 +959,8 @@ end
     function drawInventory(x, y, text, font)
         love.graphics.print("Gold: " .. player.inventory.gold, x, y)
         love.graphics.print("Iron: " .. player.inventory.iron, x, y + 16)
+        love.graphics.print("Copper: " .. player.inventory.copper, x, y + 32)
+        love.graphics.print("Scrap: " .. player.inventory.scrap, x, y + 48)
     end
 
     function drawWaveBar(x, y, width, height)
