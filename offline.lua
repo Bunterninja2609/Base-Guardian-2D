@@ -326,6 +326,9 @@ function movePlayer(dt)
         for i, tile in ipairs(mine) do
             if player.body:isTouching(tile.body) then
                 tile.hitpoints = tile.hitpoints - 1
+                tile.ParticleSystem:setSpread(2)
+                tile.ParticleSystem:setSpeed(1, 10)
+                tile.ParticleSystem:emit(32)
                 tile.hitSound:play()
                 player.timer = 0
                 player.body:setLinearVelocity(player.dashDirection.x * -4, player.dashDirection.y * -4)
@@ -352,6 +355,7 @@ function generateMine()
             tile.hitpoints = math.floor(j/1)
             tile.isGoldOre = math.random(0, 100)
             tile.isIronOre = math.random(0, 70)
+            tile.particleSystem = love.graphics.newParticleSystem(particle1, 64 )
             table.insert(mine, tile)
         end
     end
@@ -390,7 +394,7 @@ function drawMine()
         
         love.graphics.draw(stoneTexture, tile.body:getX(), tile.body:getY())
     end
-    love.graphics.line(player.body:getX(), player.body:getY(), mouseX, mouseY)
+    
 end
 function movePlayerInJet(dt)
     local wantedY = 0
@@ -527,6 +531,9 @@ end
             enemy.barrage = enemyTemplate.barrage
             enemy.barrageCounter = enemy.barrage
 
+            enemy.dropCount = enemyTemplate.dropCount
+        
+
             enemy.target = enemyTemplate.target
             enemy.projectile = enemyTemplate.projectile
             enemy.lockedTarget = base.fixture
@@ -629,6 +636,7 @@ end
         
             if enemy.health <= 0 then
                 createExplosionParticles(enemy.body:getX(), enemy.body:getY(), 8, 3)
+                player.inventory.scrap = player.inventory.scrap +  enemy.dropCount
                 enemy.body:destroy()
                 table.remove(enemies, i)
             end
