@@ -30,11 +30,13 @@
 
     player = {}
         player.inventory = {
-            gold = 0,
-            copper = 0,
-            iron = 0,
-            scrap = 0
+            gold = 9999,
+            copper = 9999,
+            iron = 9999,
+            scrap = 9999
         }
+        player.textures = love.graphics.newImage("textures/" .. theme .. "/player.png")
+        player.animations = {}
         player.buildmode = false
         player.buildZoom = 2
         player.body = love.physics.newBody(World, 1000, 300, "dynamic")
@@ -60,7 +62,7 @@
                     player.attributes.jet.maxHealth = 200
                     player.attributes.jet.speed = 150
                     player.attributes.jet.turningSpeed = 0.05
-                    player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/player.png")
+                    player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/playerJet.png")
                     player.attributes.jet.crosshair = love.graphics.newImage("textures/" .. theme .. "/crosshair.png")
                     player.attributes.jet.scale = 3
                     player.attributes.jet.height = 10
@@ -83,7 +85,15 @@
                             }
                         }
                     }
-        
+    for i = 0, 1 do
+        local direction = {}
+        for j = 0, 3 do
+            local frame = love.graphics.newQuad(16 * j, 16 * i, 16, 16, player.textures)
+            table.insert(direction, frame)
+        end
+        table.insert(player.animations, direction)
+    end
+    
     enemies = {}
     enemyStats = {
         tank = {
@@ -287,6 +297,23 @@
                 scrap = 2,
             }
 
+        },
+        antiAir = {
+            texture = love.graphics.newImage("textures/".. theme .. "/tower/antiAir.png"),
+            range = 600,
+            isCommunication = false,
+            cooldown = 0.5,
+            barrage = 6,
+            projectile = "missile",
+            target = "air",
+            health = 10000,
+            cost = {
+                copper = 5,
+                gold = 3,
+                iron = 2,
+                scrap = 5,
+            }
+
         }
     }
 
@@ -314,7 +341,7 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 0
+    waves = 16
     waveCooldown = 0
     waveIsActive = false
 --
@@ -542,6 +569,7 @@ function updateWaves(dt)
         waveIsActive = false
     end
 end
+
 --enemies--
     function createEnemy(type)
         local enemyTemplate = enemyStats[type]
@@ -1099,9 +1127,8 @@ function love.draw()
             love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.direction) * 50, playerY + math.sin(player.jet.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
             love.graphics.setColor(1, 0, 0)
             love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
-        -- Draw base layer 2
-
-        love.graphics.circle("fill", player.body:getX(), player.body:getY(), 5)
+            love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(player.textures, player.animations[math.random(1,2)][math.random(1,4)], player.body:getX(), player.body:getY(), 0 , 1, 1, 8, 8)
         love.graphics.setColor(1, 1, 1, 1)
         if player.body:getX() > 0 + base.body:getX() and player.body:getX() < 32 + base.body:getX() and player.body:getY() > 0 + base.body:getY() and player.body:getY() < 64 + base.body:getY() then 
             love.graphics.setColor(1, 1, 1, 0.5)
@@ -1145,6 +1172,9 @@ function love.keypressed(key, scancode, isrepeat)
     end
     if key == "4" then
         selectedTower = "minigun"
+    end
+    if key == "5" then
+        selectedTower = "antiAir"
     end
 
 
