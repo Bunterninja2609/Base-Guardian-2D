@@ -229,6 +229,12 @@
             projectile = "none",
             target = "none",
             health = 200,
+            cost = {
+                copper = 10,
+                gold = 0,
+                iron = 4,
+                scrap = 0,
+            }
 
         },
         bigCommunication = {
@@ -240,6 +246,12 @@
             projectile = "none",
             target = "none",
             health = 250,
+            cost = {
+                copper = 30,
+                gold = 3,
+                iron = 10,
+                scrap = 0,
+            }
 
         },
         gun = {
@@ -251,6 +263,12 @@
             projectile = "bullet",
             target = "optional",
             health = 300,
+            cost = {
+                copper = 0,
+                gold = 2,
+                iron = 3,
+                scrap = 0,
+            }
 
         },
         minigun = {
@@ -262,6 +280,12 @@
             projectile = "bullet",
             target = "optional",
             health = 400,
+            cost = {
+                copper = 0,
+                gold = 9,
+                iron = 10,
+                scrap = 2,
+            }
 
         }
     }
@@ -354,8 +378,9 @@ function generateMine()
             tile.fixture = love.physics.newFixture(tile.body, tile.shape)
             tile.hitSound = love.audio.newSource("sound effects/hit.mp3", "static")
             tile.hitpoints = math.floor(j/1)
-            tile.isGoldOre = math.random(0, 100)
-            tile.isIronOre = math.random(0, 70)
+            tile.isGoldOre = math.random(0, 200)
+            tile.isIronOre = math.random(0, 50)
+            tile.isCopperOre = math.random(0, 60)
             tile.particleSystem = love.graphics.newParticleSystem(particle1, 64 )
             
             table.insert(mine, tile)
@@ -367,8 +392,13 @@ function generateMine()
         end
     end
     for i, tile in ipairs(mine) do
-        if tile.isGoldOre ~= 1 and i > width + 1 and i < #mine - width - 1 and (mine[i-1].isIronOre == 1 or mine[i+1].isIronOre == 1 or mine[i-width].isIronOre == 1 or mine[i+width].isIronOre == 1 ) then
-            tile.isIronOre = math.random(0,1)
+        if tile.isIronOre ~= 1 and i > width + 1 and i < #mine - width - 1 and (mine[i-1].isIronOre == 1 or mine[i+1].isIronOre == 1 or mine[i-width].isIronOre == 1 or mine[i+width].isIronOre == 1 ) then
+            tile.isIronOre = math.random(0,1.3)
+        end
+    end
+    for i, tile in ipairs(mine) do
+        if tile.isCopperOre ~= 1 and i > width + 1 and i < #mine - width - 1 and (mine[i-1].isCopperOre == 1 or mine[i+1].isCopperOre == 1 or mine[i-width].isCopperOre == 1 or mine[i+width].isCopperOre == 1 ) then
+            tile.isCopperOre = math.random(0,3)
         end
     end
 end
@@ -377,10 +407,13 @@ function drawMine()
        
         if tile.hitpoints <= 0 then
             if tile.isGoldOre == 1 then
-                player.inventory.gold = player.inventory.gold + 3
+                player.inventory.gold = player.inventory.gold + 1
             end
             if tile.isIronOre == 1 then
                 player.inventory.iron = player.inventory.iron + 1
+            end
+            if tile.isCopperOre == 1 then
+                player.inventory.copper = player.inventory.copper + 3
             end
             tile.fixture:destroy()
             table.remove(mine, i)
@@ -390,6 +423,8 @@ function drawMine()
             love.graphics.setColor(0.5,0.5,0)
         elseif tile.isIronOre == 1 then
             love.graphics.setColor(0.7,0.7,0.7)
+        elseif tile.isCopperOre == 1 then
+            love.graphics.setColor(0.7,0.5,0.1)
         else
             love.graphics.setColor(1 - tile.hitpoints/256, 1 - tile.hitpoints/128, 1 - tile.hitpoints/512)
         end
@@ -819,9 +854,17 @@ end
                 isOverlapping = true
             end
         end
-
-        if isInCommunicationrange and not isOverlapping then
-            local template = towertemplates[type]
+        local template = towertemplates[type]
+        local hasMoney = false
+        if player.inventory.copper >=  template.cost.copper and player.inventory.iron >=  template.cost.iron and  player.inventory.gold >= template.cost.gold and player.inventory.scrap >=  template.cost.scrap then
+            hasMoney = true
+            player.inventory.copper = player.inventory.copper - template.cost.copper
+            player.inventory.gold = player.inventory.gold - template.cost.gold
+            player.inventory.iron = player.inventory.iron - template.cost.iron
+            player.inventory.scrap = player.inventory.scrap - template.cost.scrap
+        end 
+        if isInCommunicationrange and not isOverlapping and hasMoney then
+            
             local tower = {}
             tower.texture = template.texture
             tower.layer1 = love.graphics.newQuad(0, 0, tower.texture:getWidth() * 1/3, tower.texture:getHeight(), tower.texture)
