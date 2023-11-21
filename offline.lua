@@ -37,6 +37,8 @@
         }
         player.textures = love.graphics.newImage("textures/" .. theme .. "/player.png")
         player.animations = {}
+        player.direction = 4
+        player.currentFrame = 1
         player.buildmode = false
         player.buildZoom = 2
         player.body = love.physics.newBody(World, 1000, 300, "dynamic")
@@ -85,7 +87,7 @@
                             }
                         }
                     }
-    for i = 0, 1 do
+    for i = 0, 3 do
         local direction = {}
         for j = 0, 3 do
             local frame = love.graphics.newQuad(16 * j, 16 * i, 16, 16, player.textures)
@@ -350,18 +352,26 @@ function movePlayer(dt)
     local wantedX = 0
     if love.keyboard.isDown("w") then
         wantedY = -1  -- Move up
+        player.direction = 2
     elseif love.keyboard.isDown("s") then
         wantedY = 1   -- Move down
+        player.direction = 1
     end
 
     if love.keyboard.isDown("a") then
         wantedX = -1  -- Move left
+        player.direction = 3
     elseif love.keyboard.isDown("d") then
         wantedX = 1   -- Move right
+        player.direction = 4
     end
     player.body:setLinearVelocity(wantedX * 20,wantedY * 20)
     setCamera(player.body:getX(), player.body:getY(), 10)
-    
+    if wantedX ~= 0 or wantedY ~= 0 then
+        player.currentFrame = (player.currentFrame + dt*8) % 4
+    else 
+        player.currentFrame = 1
+    end
     
     if love.mouse.isDown(1) and canDash then
         player.body:setLinearVelocity(mouseX - player.body:getX(), mouseY - player.body:getY())
@@ -397,18 +407,18 @@ end
 function generateMine()
     local height = 32
     local width = 512
+    local audioSystem = love.audio.newSource("sound effects/hit.mp3", "static")
     for i = 0, height do
         for j = 0, width do
             local tile = {}
             tile.body = love.physics.newBody(World, base.body:getX() + 128 + j*16,base.body:getY() - height/2*16 + 32 + i*16,"static")
             tile.shape = love.physics.newRectangleShape(8, 8, 16, 16, 0)
             tile.fixture = love.physics.newFixture(tile.body, tile.shape)
-            tile.hitSound = love.audio.newSource("sound effects/hit.mp3", "static")
+            tile.hitSound = audioSystem
             tile.hitpoints = math.floor(j/1)
             tile.isGoldOre = math.random(0, 200)
             tile.isIronOre = math.random(0, 50)
             tile.isCopperOre = math.random(0, 60)
-            tile.particleSystem = love.graphics.newParticleSystem(particle1, 64 )
             
             table.insert(mine, tile)
         end
@@ -1128,7 +1138,7 @@ function love.draw()
             love.graphics.setColor(1, 0, 0)
             love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
             love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(player.textures, player.animations[math.random(1,2)][math.random(1,4)], player.body:getX(), player.body:getY(), 0 , 1, 1, 8, 8)
+        love.graphics.draw(player.textures, player.animations[player.direction][math.floor(player.currentFrame + 1)], player.body:getX(), player.body:getY(), 0 , 1, 1, 8, 8)
         love.graphics.setColor(1, 1, 1, 1)
         if player.body:getX() > 0 + base.body:getX() and player.body:getX() < 32 + base.body:getX() and player.body:getY() > 0 + base.body:getY() and player.body:getY() < 64 + base.body:getY() then 
             love.graphics.setColor(1, 1, 1, 0.5)
@@ -1175,7 +1185,7 @@ function love.keypressed(key, scancode, isrepeat)
     end
     if key == "5" then
         selectedTower = "antiAir"
-    end
+     end
 
 
 end
