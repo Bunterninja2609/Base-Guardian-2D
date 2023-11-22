@@ -108,6 +108,7 @@
             reloadTime = 2,
             barrage = 2,
             target = "ground",
+            position = "ground",
             projectile = "shell",
             isOnGround = true,
             dropCount = 2
@@ -122,6 +123,7 @@
             reloadTime = 3,
             barrage = 6,
             target = "optional",
+            position = "air",
             projectile = "missile",
             isOnGround = false,
             dropCount = 6
@@ -136,6 +138,7 @@
             reloadTime = 5,
             barrage = 5,
             target = "air",
+            position = "ground",
             projectile = "missile",
             isOnGround = true,
             dropCount = 7
@@ -150,6 +153,7 @@
             reloadTime = 5,
             barrage = 3,
             target = "ground",
+            position = "ground",
             projectile = "grenade",
             isOnGround = true,
             dropCount = 4
@@ -164,6 +168,7 @@
             reloadTime = 3,
             barrage = 30,
             target = "air",
+            position = "air",
             projectile = "bullet",
             isOnGround = false,
             dropCount = 3
@@ -178,6 +183,7 @@
             reloadTime = 5,
             barrage = 5,
             target = "ground",
+            position = "air",
             projectile = "bomb",
             isOnGround = false,
             dropCount = 5
@@ -348,7 +354,7 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 16
+    waves = 1
     waveCooldown = 0
     waveIsActive = false
 --
@@ -613,7 +619,7 @@ end
 
             enemy.dropCount = enemyTemplate.dropCount
         
-
+            enemy.zPos = enemyTemplate.position
             enemy.target = enemyTemplate.target
             enemy.projectile = enemyTemplate.projectile
             enemy.lockedTarget = base.fixture
@@ -923,7 +929,7 @@ end
             tower.cooldown = template.cooldown
             tower.cooldownTimer = template.cooldown
             tower.barrage = template.barrage
-            tower.targetType = template.targetType
+            tower.targetType = template.target
             tower.direction = 0 * math.pi
             tower.target = "none"
             tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
@@ -940,8 +946,7 @@ end
                 tower.target = enemies[1].fixture
                 for j, enemy in ipairs(enemies) do
                     if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(tower.fixture, tower.target) then
-                        local cClass1, cClass2 = enemy.fixture:getCategory()
-                        if cCLass1 == tower.targetType or cClass2 == tower.targetType then
+                        if enemy.zPos == tower.targetType or tower.targetType == "optional" then
                             tower.target = enemy.fixture
                         end
                     end
@@ -1079,10 +1084,20 @@ function love.update(dt)
     updateWaves(dt)
 
     if player.buildmode then
-        worldColor = {0.3,0.3,0.3}
+        worldColor = {0.6,0.6,0.6}
         setCamera(base.body:getX(), base.body:getY(), player.buildZoom)
         if love.mouse.isDown(1) and not mouseClick then
             createTower(mouseX, mouseY, selectedTower)
+            mouseClick = true  
+        end
+        if love.mouse.isDown(2) and not mouseClick then
+            for i, tower in ipairs(tiles) do
+                if math.sqrt((mouseX - tower.x)+(mouseY - tower.y)) < 16 then
+                    tower.health = 0
+                    updateTower(dt)
+                    break
+                end
+            end
             mouseClick = true  
         end
 
@@ -1173,6 +1188,10 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "m" then
         waves = waves + 1
         createWave()
+    end 
+    if key == "h" and player.inventory.scrap >= 5 then
+        player.attributes.jet.health = player.attributes.jet.health + 1
+        player.inventory.scrap = player.inventory.scrap - 5
     end 
     if key == "q" then 
         player.buildmode = not player.buildmode
