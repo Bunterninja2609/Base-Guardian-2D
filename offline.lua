@@ -239,6 +239,7 @@
             cooldown = 0,
             barrage = 0,
             projectile = "none",
+            targetType = collisionClass.air,
             target = "none",
             health = 200,
             cost = {
@@ -256,6 +257,7 @@
             cooldown = 0,
             barrage = 0,
             projectile = "none",
+            targetType = collisionClass.air,
             target = "none",
             health = 250,
             cost = {
@@ -273,6 +275,7 @@
             cooldown = 0.5,
             barrage = 10,
             projectile = "bullet",
+            targetType = collisionClass.ground,
             target = "optional",
             health = 300,
             cost = {
@@ -290,6 +293,7 @@
             cooldown = 0.01,
             barrage = 20,
             projectile = "bullet",
+            targetType = collisionClass.ground,
             target = "optional",
             health = 400,
             cost = {
@@ -307,6 +311,7 @@
             cooldown = 0.5,
             barrage = 6,
             projectile = "missile",
+            targetType = collisionClass.air,
             target = "air",
             health = 10000,
             cost = {
@@ -918,6 +923,7 @@ end
             tower.cooldown = template.cooldown
             tower.cooldownTimer = template.cooldown
             tower.barrage = template.barrage
+            tower.targetType = template.targetType
             tower.direction = 0 * math.pi
             tower.target = "none"
             tower.body = love.physics.newBody(World, tower.x, tower.y, "static")
@@ -934,7 +940,10 @@ end
                 tower.target = enemies[1].fixture
                 for j, enemy in ipairs(enemies) do
                     if love.physics.getDistance(tower.fixture, enemy.fixture) < love.physics.getDistance(tower.fixture, tower.target) then
-                        tower.target = enemy.fixture
+                        local cClass1, cClass2 = enemy.fixture:getCategory()
+                        if cCLass1 == tower.targetType or cClass2 == tower.targetType then
+                            tower.target = enemy.fixture
+                        end
                     end
                 end
                 tower.direction = math.atan2(tower.target:getBody():getY() - tower.y,  tower.target:getBody():getX() -tower.x)
@@ -1185,7 +1194,7 @@ function love.keypressed(key, scancode, isrepeat)
     end
     if key == "5" then
         selectedTower = "antiAir"
-     end
+    end
 
 
 end
@@ -1196,8 +1205,8 @@ function love.wheelmoved(x, y)
     else
         additionalZoom = 0
     end
-    if additionalZoom < -2 * worldScale then
-        additionalZoom = -2 * worldScale
+    if additionalZoom < -3 * worldScale then
+        additionalZoom = -3 * worldScale
     end
 end
 --Hello World
