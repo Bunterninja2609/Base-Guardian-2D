@@ -26,6 +26,8 @@
     grassTextures[3] = love.graphics.newQuad(32, 32, 32, 32, grassImage)
     grassTextures[4] = love.graphics.newQuad(0, 32, 32, 32, grassImage)
 
+    wall = love.graphics.newImage("textures/" .. theme .. "/wall.png")
+
     stoneTexture = love.graphics.newImage("textures/" .. theme .. "/stone.png")
 
     player = {}
@@ -381,7 +383,7 @@ function movePlayer(dt)
     if wantedX ~= 0 or wantedY ~= 0 then
         player.currentFrame = (player.currentFrame + dt*8) % 4
     else 
-        player.currentFrame = 1
+        player.currentFrame = 0
     end
     
     if love.mouse.isDown(1) and canDash then
@@ -1134,8 +1136,13 @@ function love.draw()
                 love.graphics.draw(grassImage, grassTextures[(math.floor(i/2)+j)%3+1],i * 32,j * 32)
             end
         end
-        drawEnemies()
         
+        drawEnemies()
+        for i = -4, 4 do
+            love.graphics.setColor(worldColor)
+            love.graphics.draw(wall, base.body:getX() - 16, base.body:getY() + 16 + i * 144 - 72)
+            
+        end
         if player.buildmode then
             love.graphics.setColor(0, 1, 0, 0.3)
             love.graphics.rectangle("fill", base.body:getX(), - 10^10, - base.communictaionDistance, 10^20)
