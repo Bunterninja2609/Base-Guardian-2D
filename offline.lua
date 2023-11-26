@@ -89,7 +89,7 @@
                             }
                         }
                     }
-    for i = 0, 3 do
+    for i = 0, 7 do
         local direction = {}
         for j = 0, 3 do
             local frame = love.graphics.newQuad(16 * j, 16 * i, 16, 16, player.textures)
@@ -363,50 +363,42 @@
 function movePlayer(dt)
     local wantedY = 0
     local wantedX = 0
+    local animationsState = 0
+    if player.body:getX() > base.body:getX() + 128 then
+        animationsState = 4
+    end
     if love.keyboard.isDown("w") then
         wantedY = -1  -- Move up
-        player.direction = 2
+        player.direction = 1 + animationsState
     elseif love.keyboard.isDown("s") then
         wantedY = 1   -- Move down
-        player.direction = 1
+        player.direction = 2 + animationsState
     end
 
     if love.keyboard.isDown("a") then
         wantedX = -1  -- Move left
-        player.direction = 3
+        player.direction = 4 + animationsState
     elseif love.keyboard.isDown("d") then
         wantedX = 1   -- Move right
-        player.direction = 4
+        player.direction = 3 + animationsState
     end
-    player.body:setLinearVelocity(wantedX * 20,wantedY * 20)
+    player.body:setLinearVelocity(wantedX * 40,wantedY * 40)
     setCamera(player.body:getX(), player.body:getY(), 10)
     if wantedX ~= 0 or wantedY ~= 0 then
-        player.currentFrame = (player.currentFrame + dt*8) % 4
+        player.currentFrame = (player.currentFrame + dt*8 + dt*animationsState) % 4
     else 
         player.currentFrame = 0
     end
     
-    if love.mouse.isDown(1) and canDash then
-        player.body:setLinearVelocity(mouseX - player.body:getX(), mouseY - player.body:getY())
-        player.dashDirection.x, player.dashDirection.y = mouseX - player.body:getX(), mouseY - player.body:getY()
-        canDash = false
-        player.timer = 1
-    elseif not love.mouse.isDown() and player.timer <= 0 then
-        canDash = true
-    elseif player.timer > 0 then
-        player.body:setLinearVelocity(player.dashDirection.x * 4, player.dashDirection.y * 4)
-    end
-    if not canDash then
-        for i, tile in ipairs(mine) do
-            if player.body:isTouching(tile.body) then
-                tile.hitpoints = tile.hitpoints - 1
-                createExplosionParticles(tile.body:getX() + 8, tile.body:getY() + 8, 2, 2)
-                tile.hitSound:play()
-                player.timer = 0
-                player.body:setLinearVelocity(player.dashDirection.x * -4, player.dashDirection.y * -4)
-            end
+    
+    for i, tile in ipairs(mine) do
+        if player.body:isTouching(tile.body) then
+            tile.hitpoints = tile.hitpoints - 1
+            createExplosionParticles(tile.body:getX() + 8, tile.body:getY() + 8, 2, 2)
+            tile.hitSound:play()
         end
     end
+    
     
     player.timer = player.timer - dt
 
