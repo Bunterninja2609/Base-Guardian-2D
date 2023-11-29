@@ -585,7 +585,7 @@ function updateWaves(dt)
     end
 end
 
---enemies--
+ --enemies--
     function createEnemy(type)
         local enemyTemplate = enemyStats[type]
 
@@ -992,9 +992,6 @@ end
             love.graphics.setColor(worldColor)
             love.graphics.draw(tower.texture, tower.layer3, tower.x, tower.y, 0, 1, 1, tower.texture:getWidth() / 6, tower.texture:getHeight() / 2)
             love.graphics.setColor(1, 0, 0)  
-            if tower.target ~= "none" and not tower.target:isDestroyed() then
-                love.graphics.line(tower.x, tower.y, tower.target:getBody():getX(), tower.target:getBody():getY())
-            end
 
             love.graphics.setColor(1, 0, 0)   
         love.graphics.rectangle("fill", tower.x  - tower.texture:getWidth() / 6, tower.y - tower.texture:getHeight() / 2, tower.texture:getWidth() / 3, 1) 
@@ -1067,6 +1064,35 @@ end
         love.graphics.rectangle("fill", x, y, width, height)
         love.graphics.setColor(0, 0.5, 1)
         love.graphics.rectangle("fill", x, height + y, width, -height * waveCooldown/(30 + (waves + 1) * 2))
+    end
+    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor)
+
+        local mouseX, mouseY = love.mouse.getPosition()
+
+        -- Check if the mouse is within the button's boundaries
+        local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
+                                    mouseY >= y and mouseY <= y + height
+
+        -- Handle button click
+        local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
+        mouseY >= y and mouseY <= y + height
+
+        -- Handle button click
+        if love.mouse.isDown(1) and not mouseClick and isMouseInsideButton then
+        toggleTable[toggleKey] = not toggleTable[toggleKey] 
+            local mouseClick = true
+            love.graphics.setColor(0.2,0.2,0.2)  -- Set the flag to true when a tower is placed
+        end
+        if not love.mouse.isDown(1) then
+            local mouseClick = false
+            love.graphics.setColor(0.4,0.4,0.4)
+        end
+        love.graphics.rectangle(x,y,width,height)
+    end
+    function drawUpgradeTree(x, y, width, height, densityX, densityY)
+        for i = 0, 20 do
+            drawButton(x+((width / densityX)*i)%width, y + math.floor(((width / densityX)*i)/width), width / densityX, height/densityY)
+        end
     end
 --//////////////--
 generateMine()
@@ -1172,8 +1198,6 @@ function love.draw()
 
 
     cam:detach()
-    drawToggleButton(100, 100, 100, 50, "WASD Steering", love.graphics.getFont(), player.attributes.jet, "WASDamingMode")
-    drawToggleButton(100, 200, 100, 50, "buildmode", love.graphics.getFont(), player, "buildmode")
     drawPlayerHealthBar(20, 20, 500, 10)
     drawInventory(20, 40)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
