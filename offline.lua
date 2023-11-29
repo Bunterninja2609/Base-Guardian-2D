@@ -74,21 +74,8 @@
                     player.attributes.jet.cooldown = 0.1
                     player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
 
-                    player.attributes.jet.upgrades = {
-                        research = {
-                            isBought = false,
-                            price = {7,"gold"},
-                            unlocked = {
-                                mobility = {
-                                    isBought = true,
-                                    price = {0, "free"},
-                                    unlocked = {}
-                                },
-                                weapons = {},
-                                shields = {}
-                            }
-                        }
-                    }
+                    player.attributes.jet.upgrades = {}
+                    player.attributes.jet.upgrades[1] = {changeLocation = player.attributes.jet, changeVariable = "health", changeFactor = 5 }
     for i = 0, 7 do
         local direction = {}
         for j = 0, 3 do
@@ -1069,29 +1056,22 @@ end
 
         local mouseX, mouseY = love.mouse.getPosition()
 
-        -- Check if the mouse is within the button's boundaries
-        local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
-                                    mouseY >= y and mouseY <= y + height
 
         -- Handle button click
-        local isMouseInsideButton = mouseX >= x and mouseX <= x + width and
-        mouseY >= y and mouseY <= y + height
-
+        local isMouseInsideButton = mouseX >= x and mouseX <= x + width and mouseY >= y and mouseY <= y + height
         -- Handle button click
-        if love.mouse.isDown(1) and not mouseClick and isMouseInsideButton then
-        toggleTable[toggleKey] = not toggleTable[toggleKey] 
-            local mouseClick = true
+        if love.mouse.isDown(1) and isMouseInsideButton then
+            changeLocation[changeVariable] = changeLocation[changeVariable] + changeFactor
             love.graphics.setColor(0.2,0.2,0.2)  -- Set the flag to true when a tower is placed
+        else
+            love.graphics.setColor(0.4,0.6,0.4)
         end
-        if not love.mouse.isDown(1) then
-            local mouseClick = false
-            love.graphics.setColor(0.4,0.4,0.4)
-        end
-        love.graphics.rectangle(x,y,width,height)
+        love.graphics.rectangle("line", x,y,width,height)
     end
     function drawUpgradeTree(x, y, width, height, densityX, densityY)
-        for i = 0, 20 do
-            drawButton(x+((width / densityX)*i)%width, y + math.floor(((width / densityX)*i)/width), width / densityX, height/densityY)
+        
+        for i = 0, #player.attributes.jet.upgrades - 1 do
+            drawButton(x+((width / densityX)*i)%width, y + math.floor(((width / densityY)*i)/width)*(height/densityY), width / densityX, height/densityY, player.attributes.jet.upgrades[1].changeLocation, player.attributes.jet.upgrades[1].changeVariable, player.attributes.jet.upgrades[1].changeFactor)
         end
     end
 --//////////////--
@@ -1201,6 +1181,9 @@ function love.draw()
     drawPlayerHealthBar(20, 20, 500, 10)
     drawInventory(20, 40)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
+    if player.buildmode then
+        drawUpgradeTree(20, 20, 200, 200, 4, 4)
+    end
 end
 
 function love.keypressed(key, scancode, isrepeat)

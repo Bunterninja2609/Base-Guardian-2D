@@ -43,7 +43,7 @@ function love.draw()
     love.graphics.setBackgroundColor(0.5,0.5,1)
     love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
     drawMode( 50, 50, 550, height - 100, "online")
-    drawMode( width - 50 -550, 50, 550, height - 100, "offline")
+    drawMode(width - 50 -550, 50, 550, height - 100, "offline")
     
     
 end
