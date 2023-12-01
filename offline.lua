@@ -29,15 +29,25 @@
     wall = love.graphics.newImage("textures/" .. theme .. "/wall.png")
 
     stoneTexture = love.graphics.newImage("textures/" .. theme .. "/stone.png")
-
-    player = {}
-        player.inventory = {
-            gold = 9999,
-            copper = 9999,
-            iron = 9999,
-            scrap = 9999
-        }
+    if true then
+        player = {}
+            player.inventory = {
+                gold = 9999,
+                copper = 9999,
+                iron = 9999,
+                scrap = 9999
+            }
+    else
+        player = {}
+            player.inventory = {
+                gold = 0,
+                copper = 0,
+                iron = 0,
+                scrap = 0
+            }
+    end
         player.textures = love.graphics.newImage("textures/" .. theme .. "/player.png")
+        player.miningSpeed = 1
         player.animations = {}
         player.direction = 4
         player.currentFrame = 1
@@ -65,17 +75,29 @@
                     player.attributes.jet.health = 200
                     player.attributes.jet.maxHealth = 200
                     player.attributes.jet.speed = 150
-                    player.attributes.jet.turningSpeed = 0.05
+                    player.attributes.jet.turningSpeed = 0.02
                     player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/playerJet.png")
                     player.attributes.jet.crosshair = love.graphics.newImage("textures/" .. theme .. "/crosshair.png")
                     player.attributes.jet.scale = 3
                     player.attributes.jet.height = 10
-                    player.attributes.jet.WASDamingMode = true
-                    player.attributes.jet.cooldown = 0.1
+                    player.attributes.jet.WASDamingMode = false
+                    player.attributes.jet.boostCooldown = 10
+                    player.attributes.jet.boostDuration = 1
+                    player.attributes.jet.boostSpeed = 100
+                    player.attributes.jet.boostCooldownTimer = 0
+                    player.attributes.jet.boostDurationTimer = 0
+                    
+                    player.attributes.jet.cooldown = 0.5
                     player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
 
                     player.attributes.jet.upgrades = {}
-                    player.attributes.jet.upgrades[1] = {changeLocation = player.attributes.jet, changeVariable = "health", changeFactor = 5 }
+                    player.attributes.jet.upgrades[1] = {changeLocation = player.attributes.jet, changeVariable = "health", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 5 , limitedFactor = player.attributes.jet.maxHealth}
+                    player.attributes.jet.upgrades[2] = {changeLocation = player.attributes.jet, changeVariable = "maxHealth", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 20 }
+                    player.attributes.jet.upgrades[3] = {changeLocation = player.attributes.jet, changeVariable = "cooldown", changeFactor = - player.attributes.jet.cooldown/8 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 30 }
+                    player.attributes.jet.upgrades[4] = {changeLocation = player, changeVariable = "miningSpeed", changeFactor = 2 , priceLocation = player.inventory, priceVariable = "copper", priceFactor = 10 }
+                    player.attributes.jet.upgrades[5] = {changeLocation = player.attributes.jet, changeVariable = "turningSpeed", changeFactor = 0.01 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1}
+                    player.attributes.jet.upgrades[6] = {changeLocation = player.attributes.jet, changeVariable = "boostSpeed", changeFactor = 10 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1000}
+                    
     for i = 0, 7 do
         local direction = {}
         for j = 0, 3 do
@@ -380,7 +402,7 @@ function movePlayer(dt)
     
     for i, tile in ipairs(mine) do
         if player.body:isTouching(tile.body) then
-            tile.hitpoints = tile.hitpoints - 1
+            tile.hitpoints = tile.hitpoints - player.miningSpeed
             createExplosionParticles(tile.body:getX() + 8, tile.body:getY() + 8, 2, 2)
             tile.hitSound:play()
         end
@@ -390,6 +412,7 @@ function movePlayer(dt)
     player.timer = player.timer - dt
 
     if love.keyboard.isDown("e") and love.physics.getDistance(player.fixture, player.jet.fixture) < 32 then
+        player.attributes.jet.boostDurationTimer = player.attributes.jet.boostDuration
         player.attributes.isInJet = true
     end
     if love.keyboard.isDown("e") and math.sqrt((player.body:getX() - base.body:getX())^2 + (player.body:getY() - base.body:getY() - 32)^2) < 16 then
@@ -465,6 +488,20 @@ end
 function movePlayerInJet(dt)
     local wantedY = 0
     local wantedX = 0
+    local additionalSpeed = 0
+    if love.keyboard.isDown("space") and player.attributes.jet.cooldownTimer <= 0 and player.attributes.jet.boostDurationTimer <= 0 then
+        player.attributes.jet.boostDurationTimer = player.attributes.jet.boostDuration
+        player.attributes.jet.boostCooldownTimer = player.attributes.jet.boostCooldown
+    end
+    if player.attributes.jet.boostDurationTimer >= 0 then
+        additionalSpeed = player.attributes.jet.boostSpeed
+        player.attributes.jet.boostDurationTimer = player.attributes.jet.boostDurationTimer - dt
+    end
+    if player.attributes.jet.boostDurationTimer <= 0 then
+        player.attributes.jet.cooldownTimer = player.attributes.jet.cooldownTimer - 1
+    end
+
+
     if player.attributes.jet.WASDamingMode then
         if love.keyboard.isDown("w") then
             wantedY = -1  -- Move up
@@ -514,7 +551,7 @@ function movePlayerInJet(dt)
         end
     end
 
-    player.jet.body:setLinearVelocity(math.cos(player.jet.direction) * player.attributes.jet.speed, math.sin(player.jet.direction) * player.attributes.jet.speed)
+    player.jet.body:setLinearVelocity(math.cos(player.jet.direction) * (player.attributes.jet.speed + additionalSpeed), math.sin(player.jet.direction) * (player.attributes.jet.speed + additionalSpeed))
 
     setCamera(player.jet.body:getX(), player.jet.body:getY(), player.attributes.jet.scale)
     if player.attributes.jet.cooldownTimer <= 0 then
@@ -530,6 +567,7 @@ function movePlayerInJet(dt)
         player.attributes.jet.height = 1
         player.body:setPosition(player.jet.body:getPosition())
     end
+    
 end
 function createWave()
     for i = 1, 8 * math.atan(waves^(1/3)), 1 do
@@ -1052,7 +1090,7 @@ end
         love.graphics.setColor(0, 0.5, 1)
         love.graphics.rectangle("fill", x, height + y, width, -height * waveCooldown/(30 + (waves + 1) * 2))
     end
-    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor)
+    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor, limitedFactor)
 
         local mouseX, mouseY = love.mouse.getPosition()
 
@@ -1060,18 +1098,24 @@ end
         -- Handle button click
         local isMouseInsideButton = mouseX >= x and mouseX <= x + width and mouseY >= y and mouseY <= y + height
         -- Handle button click
-        if love.mouse.isDown(1) and isMouseInsideButton then
+        if love.mouse.isDown(1) and isMouseInsideButton and priceLocation[priceVariable] >= priceFactor then
             changeLocation[changeVariable] = changeLocation[changeVariable] + changeFactor
+            priceLocation[priceVariable] = priceLocation[priceVariable] - priceFactor
             love.graphics.setColor(0.2,0.2,0.2)  -- Set the flag to true when a tower is placed
         else
             love.graphics.setColor(0.4,0.6,0.4)
         end
-        love.graphics.rectangle("line", x,y,width,height)
+        love.graphics.rectangle("fill", x,y,width,height)
+        if limitedFactor ~= nil then
+            if limitedFactor < changeLocation[changeVariable] then
+                changeLocation[changeVariable] = limitedFactor
+            end
+        end
     end
     function drawUpgradeTree(x, y, width, height, densityX, densityY)
         
         for i = 0, #player.attributes.jet.upgrades - 1 do
-            drawButton(x+((width / densityX)*i)%width, y + math.floor(((width / densityY)*i)/width)*(height/densityY), width / densityX, height/densityY, player.attributes.jet.upgrades[1].changeLocation, player.attributes.jet.upgrades[1].changeVariable, player.attributes.jet.upgrades[1].changeFactor)
+            drawButton(x+((width / densityX)*i)%width, y + math.floor(((width / densityY)*i)/width)*(height/densityY), width / densityX, height/densityY, player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor)
         end
     end
 --//////////////--
@@ -1182,7 +1226,7 @@ function love.draw()
     drawInventory(20, 40)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
-        drawUpgradeTree(20, 20, 200, 200, 4, 4)
+        drawUpgradeTree(love.graphics.getWidth() - 300, 0, 300, 400, 3, 4)
     end
 end
 
@@ -1201,9 +1245,6 @@ function love.keypressed(key, scancode, isrepeat)
     end 
     if key == "q" then 
         player.buildmode = not player.buildmode
-    end 
-    if key == "space" then 
-        createTower(player.jet.body:getX(), player.jet.body:getY(), "gun")
     end 
     if key == "1" then
         selectedTower = "gun"
