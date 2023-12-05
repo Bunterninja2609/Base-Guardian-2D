@@ -223,7 +223,7 @@
             dmg = 20,
             aoe = 10,
             hasAutoAim = true,
-            texture = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
+            texture = love.graphics.newImage("textures/" .. theme .. "/missile.png")
         },
         shell = {
             speed = 60,
@@ -365,7 +365,7 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 1
+    waves = 30
     waveCooldown = 0
     waveIsActive = false
 
