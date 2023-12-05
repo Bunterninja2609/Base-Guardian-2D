@@ -59,7 +59,7 @@
         player.shape = love.physics.newCircleShape(5)
         player.fixture = love.physics.newFixture(player.body, player.shape)
         player.fixture:setCategory(collisionClass.friendly, collisionClass.ground)
-        player.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
+        player.fixture:setMask(collisionClass.enemy, collisionClass.friendly)
             player.jet = {}
             player.jet.body = love.physics.newBody(World, 0, 300, "dynamic")
             player.jet.shape = love.physics.newCircleShape(10)
@@ -208,6 +208,9 @@
         base.layer1 = love.graphics.newQuad(32, 0, 32, 64, base.texture)
         base.layer2 = love.graphics.newQuad(0, 0, 32, 64, base.texture)
         base.communictaionDistance = 64
+        base.health = 1000
+        base.maxHealth = 1000
+        base.fixture:setCategory(collisionClass.friendly, collisionClass.ground)
 
     projectiles = {}
     projectileTemplates = {
@@ -365,7 +368,8 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 30
+    waves = 1
+
     waveCooldown = 0
     waveIsActive = false
 
@@ -840,6 +844,13 @@ end
                     end
                 end
             else
+                if projectile.body:isTouching(base.body) then
+                    createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 4, 2)
+                    projectile.body:destroy()
+                    base.health = base.health - 10
+                    table.remove(projectiles, i)
+                    break
+                end
                 if projectile.body:isTouching(player.jet.body) then
                     createExplosionParticles(projectile.body:getX(), projectile.body:getY(), 4, 2)
                     projectile.body:destroy()
@@ -856,7 +867,7 @@ end
                         break
                     end
                 end
-            
+                
             end
             projectile.timer = projectile.timer - 1
             if projectile.timer <= 0 and not projectile.body:isDestroyed() then
@@ -1078,6 +1089,14 @@ end
             love.graphics.rectangle("fill", x, y, width * player.attributes.jet.health / player.attributes.jet.maxHealth, heigth)
         end
     end
+    function drawBaseHealthBar(x, y, width, heigth)
+        love.graphics.setColor(0, 0 ,0)
+        love.graphics.rectangle("fill", x, y, width, heigth)
+        if base.health / base.maxHealth > 0 then
+            love.graphics.setColor(0, 0 ,1)
+            love.graphics.rectangle("fill", x, y, width * base.health / base.maxHealth, heigth)
+        end
+    end
 
     function drawInventory(x, y, text, font)
         love.graphics.print("Gold: " .. player.inventory.gold, x, y)
@@ -1104,10 +1123,13 @@ end
             changeLocation[changeVariable] = changeLocation[changeVariable] + changeFactor
             priceLocation[priceVariable] = priceLocation[priceVariable] - priceFactor
             love.graphics.setColor(0.2,0.2,0.2)  -- Set the flag to true when a tower is placed
+            
         else
             love.graphics.setColor(0.4,0.6,0.4)
         end
         love.graphics.rectangle("fill", x,y,width,height)
+        love.graphics.setColor(0,0,0)
+        love.graphics.print(changeVariable .. "+" .. changeFactor, x, y)
         if limitedFactor ~= nil then
             if limitedFactor < changeLocation[changeVariable] then
                 changeLocation[changeVariable] = limitedFactor
@@ -1239,6 +1261,7 @@ function love.draw()
 
     cam:detach()
     drawPlayerHealthBar(20, 20, 500, 10)
+    drawBaseHealthBar(20, 35, 500, 5)
     drawInventory(20, 40)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
