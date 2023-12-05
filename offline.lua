@@ -368,6 +368,8 @@
     waves = 1
     waveCooldown = 0
     waveIsActive = false
+
+    hotbarSlot = 1
 --
 function movePlayer(dt)
     local wantedY = 0
@@ -1118,6 +1120,19 @@ end
             drawButton(x+((width / densityX)*i)%width, y + math.floor(((width / densityY)*i)/width)*(height/densityY), width / densityX, height/densityY, player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor)
         end
     end
+    function drawHotbar(x, y, width, height)
+        love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
+        love.graphics.rectangle("fill", x, y, width, height)
+        for i = 0, 9 do
+            if hotbarSlot == i + 1 then
+                love.graphics.setColor(1,1,1)
+            else
+                love.graphics.setColor(0.5,0.5,0.5)
+            end
+            
+            love.graphics.rectangle("fill", x + (width/10)*i + height/20, y + height/20, width/10 - height/10, height - height/10)
+        end
+    end
 --//////////////--
 generateMine()
 function love.update(dt)
@@ -1180,11 +1195,7 @@ function love.draw()
         end
         
         drawEnemies()
-        for i = -4, 4 do
-            love.graphics.setColor(worldColor)
-            love.graphics.draw(wall, base.body:getX() - 16, base.body:getY() + 16 + i * 144 - 72)
-            
-        end
+        
         if player.buildmode then
             love.graphics.setColor(0, 1, 0, 0.3)
             love.graphics.rectangle("fill", base.body:getX(), - 10^10, - base.communictaionDistance, 10^20)
@@ -1193,6 +1204,11 @@ function love.draw()
         end
         drawTower()
         love.graphics.setColor(worldColor)
+        for i = -4, 4 do
+            love.graphics.setColor(worldColor)
+            love.graphics.draw(wall, base.body:getX() - 16, base.body:getY() + 16 + i * 144 - 72)
+            
+        end
         love.graphics.draw(base.texture, base.layer1, base.body:getX(), base.body:getY())
         drawProjectiles()
         
@@ -1226,6 +1242,7 @@ function love.draw()
     drawInventory(20, 40)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
+        drawHotbar(love.graphics:getWidth()/2 - 500, love.graphics:getHeight()-100, 1000, 100)
         drawUpgradeTree(love.graphics.getWidth() - 300, 0, 300, 400, 3, 4)
     end
 end
@@ -1248,18 +1265,23 @@ function love.keypressed(key, scancode, isrepeat)
     end 
     if key == "1" then
         selectedTower = "gun"
+        hotbarSlot = 1
     end
     if key == "2" then
         selectedTower = "communication"
+        hotbarSlot = 2
     end
     if key == "3" then
         selectedTower = "bigCommunication"
+        hotbarSlot = 3
     end
     if key == "4" then
         selectedTower = "minigun"
+        hotbarSlot = 4
     end
     if key == "5" then
         selectedTower = "antiAir"
+        hotbarSlot = 5
     end
 
 
