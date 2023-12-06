@@ -1152,7 +1152,7 @@ end
                 love.graphics.setColor(0.5,0.5,0.5)
             end
             
-            love.graphics.rectangle("fill", x + (width/10)*i + height/20, y + height/20, width/10 - height/10, height - height/10)
+            love.graphics.rectangle("fill", x + (width/10)*i + height/20, y + height/20, width/10 - height/10, height - height/10, 10, 10, 10)
         end
     end
 --//////////////--
