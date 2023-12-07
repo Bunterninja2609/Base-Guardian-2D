@@ -1144,7 +1144,7 @@ end
     end
     function drawHotbar(x, y, width, height)
         love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
-        love.graphics.rectangle("fill", x, y, width, height)
+        love.graphics.rectangle("fill", x, y, width, height, 10, 10, 10)
         for i = 0, 9 do
             if hotbarSlot == i + 1 then
                 love.graphics.setColor(1,1,1)
@@ -1260,8 +1260,8 @@ function love.draw()
 
 
     cam:detach()
-    drawPlayerHealthBar(20, 20, 500, 10)
-    drawBaseHealthBar(20, 35, 500, 5)
+    drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
+    drawBaseHealthBar(20, 35, 400, 5)
     drawInventory(20, 40)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
