@@ -205,8 +205,8 @@
         base.shape = love.physics.newChainShape(true, 32, 0, 16, 0, 0, 16, 0, 48, 16, 64, 32, 64,  32,57, 16, 57, 7, 48, 7, 16, 16, 7, 32, 7)
         base.fixture = love.physics.newFixture(base.body, base.shape)
         base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
-        base.layer1 = love.graphics.newQuad(32, 0, 32, 64, base.texture)
-        base.layer2 = love.graphics.newQuad(0, 0, 32, 64, base.texture)
+        base.layer1 = love.graphics.newQuad(base.texture:getWidth()/2, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
+        base.layer2 = love.graphics.newQuad(0, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
         base.communictaionDistance = 64
         base.health = 1000
         base.maxHealth = 1000
