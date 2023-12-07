@@ -1231,7 +1231,7 @@ function love.draw()
             love.graphics.draw(wall, base.body:getX() - 16, base.body:getY() + 16 + i * 144 - 72)
             
         end
-        love.graphics.draw(base.texture, base.layer1, base.body:getX(), base.body:getY())
+        love.graphics.draw(base.texture, base.layer1, base.body:getX(), base.body:getY() - 32)
         drawProjectiles()
         
         -- draw player jet shadow
@@ -1251,10 +1251,10 @@ function love.draw()
             love.graphics.setColor(1, 1, 1, 1)
         love.graphics.draw(player.textures, player.animations[player.direction][math.floor(player.currentFrame + 1)], player.body:getX(), player.body:getY(), 0 , 1, 1, 8, 8)
         love.graphics.setColor(1, 1, 1, 1)
-        if player.body:getX() > 0 + base.body:getX() and player.body:getX() < 32 + base.body:getX() and player.body:getY() > 0 + base.body:getY() and player.body:getY() < 64 + base.body:getY() then 
+        if player.body:getX() > 0 + base.body:getX() and player.body:getX() < 64 + base.body:getX() and player.body:getY() > 0 + base.body:getY() and player.body:getY() < 64 + base.body:getY() then 
             love.graphics.setColor(1, 1, 1, 0.5)
         end
-        love.graphics.draw(base.texture, base.layer2, base.body:getX(), base.body:getY())
+        love.graphics.draw(base.texture, base.layer2, base.body:getX(), base.body:getY() - 32)
         drawMine()
 
 
