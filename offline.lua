@@ -379,7 +379,7 @@ function movePlayer(dt)
     local wantedY = 0
     local wantedX = 0
     local animationsState = 0
-    if player.body:getX() > base.body:getX() + 128 then
+    if player.body:getX() > base.body:getX() + 48 then
         animationsState = 4
     end
     if love.keyboard.isDown("w") then
@@ -432,7 +432,7 @@ function generateMine()
     for i = 0, height do
         for j = 0, width do
             local tile = {}
-            tile.body = love.physics.newBody(World, base.body:getX() + 128 + j*16,base.body:getY() - height/2*16 + 32 + i*16,"static")
+            tile.body = love.physics.newBody(World, base.body:getX() + 48 + j*16,base.body:getY() - height/2*16 + 32 + i*16,"static")
             tile.shape = love.physics.newRectangleShape(8, 8, 16, 16, 0)
             tile.fixture = love.physics.newFixture(tile.body, tile.shape)
             tile.hitSound = audioSystem
