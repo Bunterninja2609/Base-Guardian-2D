@@ -1204,14 +1204,14 @@ function love.update(dt)
     end
 end
 function love.draw()
-    love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
+    love.graphics.setBackgroundColor(0.35, 0.35, 0.35)
     love.graphics.setColor(worldColor)
     cam:attach()
         local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
         
         -- Draw temporary Background
-        for i = -40, 60, 1 do
-            for j = -40, 60, 1 do
+        for i = -40, base.body:getX()/32 , 1 do
+            for j = 0, 60, 1 do
                 love.graphics.draw(grassImage, grassTextures[(math.floor(i/2)+j)%3+1],i * 32,j * 32)
             end
         end
