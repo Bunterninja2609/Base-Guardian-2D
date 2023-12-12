@@ -53,7 +53,7 @@
         player.currentFrame = 1
         player.buildmode = false
         player.buildZoom = 2
-        player.body = love.physics.newBody(World, 1000, 300, "dynamic")
+        player.body = love.physics.newBody(World, 1032, 332, "dynamic")
         player.timer = 0
         player.dashDirection = {x = 0, y = 0}
         player.shape = love.physics.newCircleShape(5)
@@ -170,7 +170,7 @@
             dropCount = 4
         },
         jet2 = {
-            texture = love.graphics.newImage("textures/" .. theme .. "/player.png"),
+            texture = love.graphics.newImage("textures/" .. theme .. "/jet2.png"),
             speed = 120,
             health = 60,
             turningSpeed = 0.015,
@@ -368,7 +368,7 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 1
+    waves = 20
 
     waveCooldown = 0
     waveIsActive = false
@@ -568,10 +568,12 @@ function movePlayerInJet(dt)
     else
         player.attributes.jet.cooldownTimer = player.attributes.jet.cooldownTimer - dt
     end
-    if love.keyboard.isDown("lshift") and math.sqrt((player.jet.body:getX() - base.body:getX())^2 + (player.jet.body:getY() - base.body:getY() + 128)^2) < 32 then
+    if love.keyboard.isDown("lshift") and math.sqrt((((player.jet.body:getX() - base.body:getX())^2) + 16) + (player.jet.body:getY() - base.body:getY() + 8)^2) < 32 then
         player.attributes.isInJet = false
         player.attributes.jet.height = 1
-        player.body:setPosition(player.jet.body:getPosition())
+        player.body:setPosition(base.body:getX() + 32, base.body:getY() + 8)
+        player.jet.direction = math.pi
+        player.jet.wantedDirection = math.pi
     end
     
 end
@@ -616,7 +618,7 @@ function updateWaves(dt)
     end
 end
 
- --enemies--
+--enemies--
     function createEnemy(type)
         local enemyTemplate = enemyStats[type]
 
@@ -1192,7 +1194,7 @@ function love.update(dt)
     else
         worldColor = {1,1,1}
         movePlayer(dt)
-        player.jet.body:setPosition(base.body:getX(), base.body:getY() - 128)
+        player.jet.body:setPosition(base.body:getX() + 32, base.body:getY() - 8)
     end
     if not player.buildmode then
         updateEnemies(dt)
