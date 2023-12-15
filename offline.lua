@@ -202,7 +202,7 @@
     }
     base = {}
         base.body = love.physics.newBody(World, 1000, 300, "static")
-        base.shape = love.physics.newChainShape(true, 32, 0, 16, 0, 0, 16, 0, 48, 16, 64, 32, 64,  32,57, 16, 57, 7, 48, 7, 16, 16, 7, 32, 7)
+        base.shape = love.physics.newChainShape(true, 56, 24,  64, 24,  64, 0,  16, 0,  0, 16,  0, 48,  16, 64,  64, 64,  54, 40,  56, 40,  56, 56,  16, 56,  8, 48,  8, 16,  16, 8,  56, 8)
         base.fixture = love.physics.newFixture(base.body, base.shape)
         base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
         base.layer1 = love.graphics.newQuad(base.texture:getWidth()/2, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
@@ -1129,7 +1129,7 @@ end
         else
             love.graphics.setColor(0.4,0.6,0.4)
         end
-        love.graphics.rectangle("fill", x,y,width,height)
+        love.graphics.rectangle("line", x,y,width,height)
         love.graphics.setColor(0,0,0)
         love.graphics.print(changeVariable .. "+" .. changeFactor, x, y)
         if limitedFactor ~= nil then
@@ -1268,7 +1268,7 @@ function love.draw()
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
         drawHotbar(love.graphics:getWidth()/2 - 500, love.graphics:getHeight()-100, 1000, 100)
-        drawUpgradeTree(love.graphics.getWidth() - 300, 0, 300, 400, 3, 4)
+        drawUpgradeTree(love.graphics.getWidth() - 400, 100, 300, 400, 3, 4)
     end
 end
 
