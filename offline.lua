@@ -29,7 +29,7 @@
     wall = love.graphics.newImage("textures/" .. theme .. "/wall.png")
 
     stoneTexture = love.graphics.newImage("textures/" .. theme .. "/stone.png")
-    if true then
+    if false then
         player = {}
             player.inventory = {
                 gold = 9999,
@@ -87,7 +87,7 @@
                     player.attributes.jet.boostCooldownTimer = 0
                     player.attributes.jet.boostDurationTimer = 0
                     
-                    player.attributes.jet.cooldown = 0.5
+                    player.attributes.jet.cooldown = 1
                     player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
 
                     player.attributes.jet.upgrades = {}
@@ -210,7 +210,13 @@
         base.communictaionDistance = 64
         base.health = 1000
         base.maxHealth = 1000
-        base.fixture:setCategory(collisionClass.friendly, collisionClass.ground)
+        base.fixture:setCategory(collisionClass.friendly, collisionClass.ground, collisionClass.air)
+        
+    border = {}
+        border.body = love.physics.newBody(World, 0, 0, "static")
+        border.shape = love.physics.newChainShape(false,  base.body:getX() + 64, base.body:getY() + 64, base.body:getX() + 64, base.body:getY()*2,0, base.body:getY()*2, 0, 64, base.body:getX() + 64, 64, base.body:getX() + 64, base.body:getY())
+        border.fixture = love.physics.newFixture(border.body, border.shape)
+        border.fixture:setCategory(collisionClass.air, collisionClass.ground)
 
     projectiles = {}
     projectileTemplates = {
@@ -219,7 +225,7 @@
             dmg = 10,
             aoe = 0,
             hasAutoAim = false,
-            texture = love.graphics.newImage("textures/" .. theme .. "/particle1.png")
+            texture = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
         },
         missile = {
             speed = 150,
@@ -233,7 +239,7 @@
             dmg = 15,
             aoe = 0,
             hasAutoAim = false,
-            texture = love.graphics.newImage("textures/" .. theme .. "/bullet.png")
+            texture = love.graphics.newImage("textures/" .. theme .. "/shell.png")
         },
         bomb = {
             speed = 10,
@@ -503,10 +509,6 @@ function movePlayerInJet(dt)
         additionalSpeed = player.attributes.jet.boostSpeed
         player.attributes.jet.boostDurationTimer = player.attributes.jet.boostDurationTimer - dt
     end
-    if player.attributes.jet.boostDurationTimer <= 0 then
-        player.attributes.jet.cooldownTimer = player.attributes.jet.cooldownTimer - 1
-    end
-
 
     if player.attributes.jet.WASDamingMode then
         if love.keyboard.isDown("w") then
@@ -1139,9 +1141,9 @@ end
         end
     end
     function drawUpgradeTree(x, y, width, height, densityX, densityY)
-        
+        player.attributes.jet.upgrades[1].limitedFactor = player.attributes.jet.maxHealth
         for i = 0, #player.attributes.jet.upgrades - 1 do
-            drawButton(x + (i * (width/densityX))%width, y, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor)
+            drawButton(x + (i * (width/densityX))%width, y + math.floor(i/densityX) * height/densityY, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor)
         end
     end
     function drawHotbar(x, y, width, height)
@@ -1213,7 +1215,7 @@ function love.draw()
         
         -- Draw temporary Background
         for i = -40, base.body:getX()/32 , 1 do
-            for j = 0, 60, 1 do
+            for j = 2   , base.body:getY()/32*2, 1 do
                 love.graphics.draw(grassImage, grassTextures[(math.floor(i/2)+j)%3+1],i * 32,j * 32)
             end
         end
@@ -1265,6 +1267,7 @@ function love.draw()
     drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
     drawBaseHealthBar(20, 35, 400, 5)
     drawInventory(20, 40)
+    love.graphics.print(player.attributes.jet.cooldownTimer, 100, 100)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
         drawHotbar(love.graphics:getWidth()/2 - 500, love.graphics:getHeight()-100, 1000, 100)

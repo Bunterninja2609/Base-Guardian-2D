@@ -21,6 +21,7 @@ function drawMode(x, y, localWidth, localHeight, mode)
 
     love.graphics.setColor(0 ,0 ,0 ,1)
     love.graphics.rectangle("fill", x + 20 - offset, y + 230 - offset, localWidth - 40 + offset*2, localHeight - 300 + offset*2, 10)
+    love.graphics.print((localWidth - 40 + offset*2).."   "..(localHeight - 300 + offset*2),x , y)
     if love.mouse.isDown(1) then
         state.current = mode
     end
@@ -39,11 +40,11 @@ function love.update(dt)
     end
 end
 function love.draw()
-    love.window.setFullscreen(true, "desktop")
+    love.window.setFullscreen(false, "desktop")
     love.graphics.setBackgroundColor(0.5,0.5,1)
     love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
-    drawMode( 50, 50, 550, height - 100, "online")
-    drawMode(width - 50 -550, 50, 550, height - 100, "offline")
+    drawMode( 50, 50, width/2 - 100, height - 100, "online")
+    drawMode(width/2 + 50, 50, width/2 - 100, height - 100, "offline")
     
     
 end
