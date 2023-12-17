@@ -1141,7 +1141,7 @@ end
     function drawUpgradeTree(x, y, width, height, densityX, densityY)
         
         for i = 0, #player.attributes.jet.upgrades - 1 do
-            drawButton(x + (i * (width/densityX))%(width/densityX), y, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor)
+            drawButton(x + (i * (width/densityX))%width, y, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor)
         end
     end
     function drawHotbar(x, y, width, height)
