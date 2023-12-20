@@ -1104,7 +1104,7 @@ end
     end
 
     function drawInventory(x, y, width, height, text, font)
-        love.graphics.setColor(0.9, 0.9, 0.9)
+        love.graphics.setColor(1, 1, 0, 0.9)
         love.graphics.rectangle(x, y, width, height)
         love.graphics.print("Gold: " .. player.inventory.gold, x, y)
         love.graphics.print("Iron: " .. player.inventory.iron, x, y + 16)
@@ -1269,7 +1269,7 @@ function love.draw()
     cam:detach()
     drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
     drawBaseHealthBar(20, 35, 400, 5)
-    drawInventory(20, 40)
+    drawInventory(20, 40, 100, 50)
     love.graphics.print(player.attributes.jet.cooldownTimer, 100, 100)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
