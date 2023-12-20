@@ -1,4 +1,4 @@
---Variables
+ --Variables
     love.physics.setMeter(64)
     love.graphics.setDefaultFilter("nearest", "nearest")
     love.window.setFullscreen(true, "desktop")
@@ -10,6 +10,7 @@
     particle1 = love.graphics.newImage("textures/"..theme.."/particle1.png")
     selectedTower = "gun"
     worldColor = {0.1,0.1,0.1}
+    globalFont = love.graphics.newImageFont("textures/"..theme.."font.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZancdefghijklmnopqrstuvwxyzÄÖÜäöü1234567890!?.,:;><+-*/")
 
     collisionClass = {
         air = 1,
@@ -1102,7 +1103,9 @@ end
         end
     end
 
-    function drawInventory(x, y, text, font)
+    function drawInventory(x, y, width, height, text, font)
+        love.graphics.setColor(0.9, 0.9, 0.9)
+        love.graphics.rectangle(x, y, width, height)
         love.graphics.print("Gold: " .. player.inventory.gold, x, y)
         love.graphics.print("Iron: " .. player.inventory.iron, x, y + 16)
         love.graphics.print("Copper: " .. player.inventory.copper, x, y + 32)
