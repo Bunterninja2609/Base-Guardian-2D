@@ -10,7 +10,7 @@
     particle1 = love.graphics.newImage("textures/"..theme.."/particle1.png")
     selectedTower = "gun"
     worldColor = {0.1,0.1,0.1}
-    globalFont = love.graphics.newImageFont("textures/"..theme.."font.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZancdefghijklmnopqrstuvwxyzÄÖÜäöü1234567890!?.,:;><+-*/")
+    globalFont = love.graphics.newImageFont("textures/"..theme.."/font.png", " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
 
     collisionClass = {
         air = 1,
@@ -375,7 +375,7 @@
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
 
-    waves = 20
+    waves = 0
 
     waveCooldown = 0
     waveIsActive = false
@@ -416,7 +416,7 @@ function movePlayer(dt)
     for i, tile in ipairs(mine) do
         if player.body:isTouching(tile.body) then
             tile.hitpoints = tile.hitpoints - player.miningSpeed
-            createExplosionParticles(tile.body:getX() + 8, tile.body:getY() + 8, 2, 2)
+            love.audio.setVolume(0.3)
             tile.hitSound:play()
         end
     end
@@ -627,7 +627,7 @@ end
 
         local enemy = {}  
             enemy.texture = enemyTemplate.texture
-            enemy.body = love.physics.newBody(World, 100, math.random(0, 100), "dynamic")
+            enemy.body = love.physics.newBody(World, 100, math.random(64, base.body:getY() * 2), "dynamic")
             enemy.body:setAngularDamping(1000)
             enemy.shape = love.physics.newCircleShape(enemy.texture:getWidth() / 2)
             enemy.fixture = love.physics.newFixture(enemy.body, enemy.shape)
@@ -1104,8 +1104,9 @@ end
     end
 
     function drawInventory(x, y, width, height, text, font)
-        love.graphics.setColor(1, 1, 0, 0.9)
-        love.graphics.rectangle(x, y, width, height)
+        love.graphics.setColor(0.5, 0.5, 0.5, 0.9)
+        love.graphics.rectangle("fill", x, y, width, height, 10, 10, 10)
+        love.graphics.setColor(1, 1, 1)
         love.graphics.print("Gold: " .. player.inventory.gold, x, y)
         love.graphics.print("Iron: " .. player.inventory.iron, x, y + 16)
         love.graphics.print("Copper: " .. player.inventory.copper, x, y + 32)
@@ -1249,14 +1250,16 @@ function love.draw()
         love.graphics.draw(particleSystem.muzzleFlash, 0 ,0)
         
         -- Draw the player jet 
-            love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
-            drawExplosionParticles()
-
+        love.graphics.draw(player.attributes.jet.image, playerX, playerY, player.jet.direction + math.pi / 2, 1, 1, player.attributes.jet.image:getWidth() / 2, player.attributes.jet.image:getHeight() / 2)
+        drawExplosionParticles()
+        if player.attributes.isInJet then
             love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.direction) * 50, playerY + math.sin(player.jet.direction) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
             love.graphics.setColor(1, 0, 0)
             love.graphics.draw(player.attributes.jet.crosshair, playerX + math.cos(player.jet.wantedDirection) * 50, playerY + math.sin(player.jet.wantedDirection) * 50, 0, 1, 1, player.attributes.jet.crosshair:getWidth() / 2, player.attributes.jet.crosshair:getHeight() / 2)
+        else
             love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(player.textures, player.animations[player.direction][math.floor(player.currentFrame + 1)], player.body:getX(), player.body:getY(), 0 , 1, 1, 8, 8)
+            love.graphics.draw(player.textures, player.animations[player.direction][math.floor(player.currentFrame + 1)], player.body:getX(), player.body:getY(), 0 , 1, 1, 8, 8)
+        end
         love.graphics.setColor(1, 1, 1, 1)
         if player.body:getX() > 0 + base.body:getX() and player.body:getX() < 64 + base.body:getX() and player.body:getY() > 0 + base.body:getY() and player.body:getY() < 64 + base.body:getY() then 
             love.graphics.setColor(1, 1, 1, 0.5)
@@ -1269,8 +1272,8 @@ function love.draw()
     cam:detach()
     drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
     drawBaseHealthBar(20, 35, 400, 5)
-    drawInventory(20, 40, 100, 50)
-    love.graphics.print(player.attributes.jet.cooldownTimer, 100, 100)
+    drawInventory(20, 40, 100, 70)
+    --love.graphics.print("helpful controll variable", 100, 100)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
         drawHotbar(love.graphics:getWidth()/2 - 500, love.graphics:getHeight()-100, 1000, 100)
