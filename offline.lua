@@ -442,11 +442,11 @@ function generateMine()
     for i = 0, height do
         for j = 0, width do
             local tile = {}
-            tile.body = love.physics.newBody(World, base.body:getX() + 48 + j*16,base.body:getY() - height/2*16 + 32 + i*16,"static")
+            tile.body = love.physics.newBody(World, base.body:getX() + 64 + j*16,base.body:getY() - height/2*16 + 32 + i*16,"static")
             tile.shape = love.physics.newRectangleShape(8, 8, 16, 16, 0)
             tile.fixture = love.physics.newFixture(tile.body, tile.shape)
             tile.hitSound = audioSystem
-            tile.hitpoints = math.floor(j/1)
+            tile.hitpoints = math.floor(j/1) + 1
             tile.isGoldOre = math.random(0, 200)
             tile.isIronOre = math.random(0, 50)
             tile.isCopperOre = math.random(0, 60)
@@ -626,6 +626,9 @@ function updateWaves(dt)
     if #enemies <= 0 then
         waveIsActive = false
     end
+end
+function gameOver()
+    love.graphics.rectangle("fill", 10, 10, love.graphics:getWidth() - 20, love.graphics.getHeight() - 20)
 end
 
 --enemies--
@@ -1173,49 +1176,51 @@ end
 --//////////////--
 generateMine()
 function love.update(dt)
-    worldScale = baseZoom + additionalZoom
-    mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
-    mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
-    
-    updateWaves(dt)
+        if base.health > 0 then
+        worldScale = baseZoom + additionalZoom
+        mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
+        mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
+        
+        updateWaves(dt)
 
-    if player.buildmode then
-        worldColor = {0.6,0.6,0.6}
-        setCamera(base.body:getX(), base.body:getY(), player.buildZoom)
-        if love.mouse.isDown(1) and not mouseClick then
-            createTower(mouseX, mouseY, selectedTower)
-            mouseClick = true  
-        end
-        if love.mouse.isDown(2) and not mouseClick then
-            for i, tower in ipairs(tiles) do
-                if math.sqrt((mouseX - tower.x)+(mouseY - tower.y)) < 16 then
-                    tower.health = 0
-                    updateTower(dt)
-                    break
-                end
+        if player.buildmode then
+            worldColor = {0.6,0.6,0.6}
+            setCamera(base.body:getX(), base.body:getY(), player.buildZoom)
+            if love.mouse.isDown(1) and not mouseClick then
+                createTower(mouseX, mouseY, selectedTower)
+                mouseClick = true  
             end
-            mouseClick = true  
-        end
+            if love.mouse.isDown(2) and not mouseClick then
+                for i, tower in ipairs(tiles) do
+                    if math.sqrt((mouseX - tower.x)+(mouseY - tower.y)) < 16 then
+                        tower.health = 0
+                        updateTower(dt)
+                        break
+                    end
+                end
+                mouseClick = true  
+            end
 
-        if not love.mouse.isDown(1) then
-            mouseClick = false
+            if not love.mouse.isDown(1) then
+                mouseClick = false
+            end
+        elseif player.attributes.isInJet then
+            worldColor = {1,1,1}
+            player.body:setPosition(base.body:getX() + 16, base.body:getY() + 32)
+            movePlayerInJet(dt)
+        else
+            worldColor = {1,1,1}
+            movePlayer(dt)
+            player.jet.body:setPosition(base.body:getX() + 32, base.body:getY() - 8)
         end
-    elseif player.attributes.isInJet then
-        worldColor = {1,1,1}
-        player.body:setPosition(base.body:getX() + 16, base.body:getY() + 32)
-        movePlayerInJet(dt)
-    else
-        worldColor = {1,1,1}
-        movePlayer(dt)
-        player.jet.body:setPosition(base.body:getX() + 32, base.body:getY() - 8)
-    end
-    if not player.buildmode then
-        updateEnemies(dt)
-        updateProjectiles(dt)
-        updateTower(dt)
-        particleSystem.muzzleFlash:update(dt)
-        updateExplosionParticles(dt)
-        World:update(dt)
+        if not player.buildmode then
+            updateEnemies(dt)
+            updateProjectiles(dt)
+            updateTower(dt)
+            particleSystem.muzzleFlash:update(dt)
+            updateExplosionParticles(dt)
+            World:update(dt)
+        end
     end
 end
 function love.draw()
@@ -1225,12 +1230,12 @@ function love.draw()
         local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
         
         -- Draw temporary Background
-        for i = -40, base.body:getX()/32 , 1 do
-            for j = 2   , base.body:getY()/32*2, 1 do
+        for i = 0, base.body:getX()/32 , 1 do
+            for j = 2, (base.body:getY()/32)*2, 1 do
                 love.graphics.draw(grassImage, grassTextures[(math.floor(i/2)+j)%3+1],i * 32,j * 32)
             end
         end
-        
+        drawMine()
         drawEnemies()
         
         if player.buildmode then
@@ -1272,7 +1277,7 @@ function love.draw()
             love.graphics.setColor(1, 1, 1, 0.5)
         end
         love.graphics.draw(base.texture, base.layer2, base.body:getX(), base.body:getY() - 32)
-        drawMine()
+        
 
 
 
