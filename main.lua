@@ -40,7 +40,6 @@ function love.update(dt)
     end
 end
 function love.draw()
-    love.window.setFullscreen(false, "desktop")
     love.graphics.setBackgroundColor(0.5,0.5,1)
     love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
     drawMode( 50, 50, width/2 - 100, height - 100, "online")
