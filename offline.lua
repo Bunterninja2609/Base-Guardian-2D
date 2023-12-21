@@ -30,6 +30,9 @@
     wall = love.graphics.newImage("textures/" .. theme .. "/wall.png")
 
     stoneTexture = love.graphics.newImage("textures/" .. theme .. "/stone.png")
+    copperTexture = love.graphics.newImage("textures/" .. theme .. "/copper.png")
+    goldTexture = love.graphics.newImage("textures/" .. theme .. "/gold.png")
+    ironTexture = love.graphics.newImage("textures/" .. theme .. "/iron.png")
     if false then
         player = {}
             player.inventory = {
@@ -469,6 +472,10 @@ function generateMine()
 end
 function drawMine()
     for i, tile in ipairs(mine) do
+        love.graphics.setColor(0.2, 0.2, 0.2)
+        love.graphics.polygon("fill", tile.body:getX()- 1, tile.body:getY() + 1, tile.body:getX(), tile.body:getY(), tile.body:getX() + 16, tile.body:getY(), tile.body:getX() + 16, tile.body:getY() + 16, tile.body:getX() + 15, tile.body:getY() + 17, tile.body:getX() - 1, tile.body:getY() + 17)
+    end
+    for i, tile in ipairs(mine) do
        
         if tile.hitpoints <= 0 then
             if tile.isGoldOre == 1 then
@@ -484,17 +491,17 @@ function drawMine()
             table.remove(mine, i)
             
         end
+        love.graphics.setColor(1 - tile.hitpoints/256, 1 - tile.hitpoints/128, 1 - tile.hitpoints/512)
         if tile.isGoldOre == 1 then
-            love.graphics.setColor(0.5,0.5,0)
+            love.graphics.draw(goldTexture, tile.body:getX(), tile.body:getY())
         elseif tile.isIronOre == 1 then
-            love.graphics.setColor(0.7,0.7,0.7)
+            love.graphics.draw(ironTexture, tile.body:getX(), tile.body:getY())
         elseif tile.isCopperOre == 1 then
-            love.graphics.setColor(0.7,0.5,0.1)
+            love.graphics.draw(copperTexture, tile.body:getX(), tile.body:getY())
         else
-            love.graphics.setColor(1 - tile.hitpoints/256, 1 - tile.hitpoints/128, 1 - tile.hitpoints/512)
+            love.graphics.draw(stoneTexture, tile.body:getX(), tile.body:getY())
         end
         
-        love.graphics.draw(stoneTexture, tile.body:getX(), tile.body:getY())
     end
     
 end
