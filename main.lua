@@ -1,6 +1,7 @@
 -- main.lua
 
 -- Define some variables to keep track of the current state
+local FPS = 0
 local state = {}
 state.current = "titlescreen"
 local offline
@@ -29,6 +30,7 @@ function drawMode(x, y, localWidth, localHeight, mode)
 end
 
 function love.update(dt)
+    FPS = 1 / dt
     if state.current == "titlescreen"then
         width = love.graphics.getWidth()
         height = love.graphics.getHeight()
@@ -40,11 +42,13 @@ function love.update(dt)
     end
 end
 function love.draw()
-    love.graphics.setBackgroundColor(0.5,0.5,1)
     love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
+
+
     drawMode( 50, 50, width/2 - 100, height - 100, "online")
     drawMode(width/2 + 50, 50, width/2 - 100, height - 100, "offline")
     
+    love.graphics.print(math.floor(FPS), 100, 100)
     
 end
 function love.keypressed(key)

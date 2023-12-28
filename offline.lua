@@ -1,7 +1,8 @@
  --Variables
+    FPS = 0
     love.physics.setMeter(64)
     love.graphics.setDefaultFilter("nearest", "nearest")
-    love.window.setFullscreen(true, "desktop")
+    love.window.setFullscreen(false, "desktop")
     World = love.physics.newWorld(0, 0, true)
     baseZoom = 3
     additionalZoom = 0
@@ -79,7 +80,7 @@
                     player.attributes.jet.health = 200
                     player.attributes.jet.maxHealth = 200
                     player.attributes.jet.speed = 150
-                    player.attributes.jet.turningSpeed = 0.02
+                    player.attributes.jet.turningSpeed = 0.05
                     player.attributes.jet.image = love.graphics.newImage("textures/" .. theme .. "/playerJet.png")
                     player.attributes.jet.crosshair = love.graphics.newImage("textures/" .. theme .. "/crosshair.png")
                     player.attributes.jet.scale = 3
@@ -91,7 +92,7 @@
                     player.attributes.jet.boostCooldownTimer = 0
                     player.attributes.jet.boostDurationTimer = 0
                     
-                    player.attributes.jet.cooldown = 1
+                    player.attributes.jet.cooldown = 0.5
                     player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
 
                     player.attributes.jet.upgrades = {}
@@ -116,7 +117,7 @@
         tank = {
             texture = love.graphics.newImage("textures/" .. theme .. "/tank.png"),
             speed = 25,
-            health = 60,
+            health = 30,
             turningSpeed = 0.05,
             range = 100,
             cooldown = 0.5,
@@ -437,7 +438,7 @@ function movePlayer(dt)
 end
 function generateMine()
     local height = 32
-    local width = 512
+    local width = 256
     local audioSystem = love.audio.newSource("sound effects/hit.mp3", "static")
     for i = 0, height do
         for j = 0, width do
@@ -447,16 +448,16 @@ function generateMine()
             tile.fixture = love.physics.newFixture(tile.body, tile.shape)
             tile.hitSound = audioSystem
             tile.hitpoints = math.floor(j/1) + 1
-            tile.isGoldOre = math.random(0, 200)
-            tile.isIronOre = math.random(0, 50)
-            tile.isCopperOre = math.random(0, 60)
+            tile.isGoldOre = math.random(0, 50)
+            tile.isIronOre = math.random(0, 20)
+            tile.isCopperOre = math.random(0, 30)
             
             table.insert(mine, tile)
         end
     end
     for i, tile in ipairs(mine) do
         if i > width + 1 and i < #mine - width - 1 and (mine[i-1].isGoldOre == 1 or mine[i+1].isGoldOre == 1 or mine[i-width].isGoldOre == 1 or mine[i+width].isGoldOre == 1 ) then
-            tile.isGoldOre = math.random(0,2)
+            tile.isGoldOre = math.random(0, 3)
         end
     end
     for i, tile in ipairs(mine) do
@@ -466,7 +467,7 @@ function generateMine()
     end
     for i, tile in ipairs(mine) do
         if tile.isCopperOre ~= 1 and i > width + 1 and i < #mine - width - 1 and (mine[i-1].isCopperOre == 1 or mine[i+1].isCopperOre == 1 or mine[i-width].isCopperOre == 1 or mine[i+width].isCopperOre == 1 ) then
-            tile.isCopperOre = math.random(0,3)
+            tile.isCopperOre = math.random(0, 1.2)
         end
     end
 end
@@ -588,7 +589,7 @@ function movePlayerInJet(dt)
     
 end
 function createWave()
-    for i = 1, 8 * math.atan(waves^(1/3)), 1 do
+    for i = 1, 4 * math.atan(waves^(1/3)), 1 do
         createEnemy("tank")
     end
     for i = 1, waves/3 - 5.5, 1 do
@@ -1171,11 +1172,15 @@ end
             end
             
             love.graphics.rectangle("fill", x + (width/10)*i + height/20, y + height/20, width/10 - height/10, height - height/10, 10, 10, 10)
+            love.graphics.setColor(0,0,0)
+            love.graphics.printf(towertemplates[selectedTower].cost, x + (width/10)* i + height/20, y )
+
         end
     end
 --//////////////--
 generateMine()
 function love.update(dt)
+    FPS = 1 / dt
         if base.health > 0 then
         worldScale = baseZoom + additionalZoom
         mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
@@ -1285,7 +1290,7 @@ function love.draw()
     drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
     drawBaseHealthBar(20, 35, 400, 5)
     drawInventory(20, 40, 100, 70)
-    --love.graphics.print("helpful controll variable", 100, 100)
+    love.graphics.print(math.floor(FPS), 100, 100)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     if player.buildmode then
         drawHotbar(love.graphics:getWidth()/2 - 500, love.graphics:getHeight()-100, 1000, 100)
