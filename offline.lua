@@ -34,7 +34,7 @@
     copperTexture = love.graphics.newImage("textures/" .. theme .. "/copper.png")
     goldTexture = love.graphics.newImage("textures/" .. theme .. "/gold.png")
     ironTexture = love.graphics.newImage("textures/" .. theme .. "/iron.png")
-    if false then
+    if true then
         player = {}
             player.inventory = {
                 gold = 9999,
@@ -263,6 +263,24 @@
     }
     tiles = {}
     towertemplates = {
+        gun = {
+            texture = love.graphics.newImage("textures/".. theme .. "/tower/gun.png"),
+            range = 200,
+            isCommunication = false,
+            cooldown = 0.5,
+            barrage = 10,
+            projectile = "bullet",
+            targetType = collisionClass.ground,
+            target = "optional",
+            health = 300,
+            cost = {
+                copper = 0,
+                gold = 2,
+                iron = 3,
+                scrap = 0,
+            }
+
+        },
         communication = {
             texture = love.graphics.newImage("textures/".. theme .. "/tower/communication.png"),
             range = 50,
@@ -295,24 +313,6 @@
                 copper = 30,
                 gold = 3,
                 iron = 10,
-                scrap = 0,
-            }
-
-        },
-        gun = {
-            texture = love.graphics.newImage("textures/".. theme .. "/tower/gun.png"),
-            range = 200,
-            isCommunication = false,
-            cooldown = 0.5,
-            barrage = 10,
-            projectile = "bullet",
-            targetType = collisionClass.ground,
-            target = "optional",
-            health = 300,
-            cost = {
-                copper = 0,
-                gold = 2,
-                iron = 3,
                 scrap = 0,
             }
 
@@ -1162,8 +1162,8 @@ end
         end
     end
     function drawHotbar(x, y, width, height)
-        love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
-        love.graphics.rectangle("fill", x, y, width, height, 10, 10, 10)
+        love.graphics.setColor(0.2, 0.2, 0.2, 1)
+        love.graphics.rectangle("fill", 0, y, love.graphics:getWidth(), height)
         for i = 0, 9 do
             if hotbarSlot == i + 1 then
                 love.graphics.setColor(1,1,1)
@@ -1173,8 +1173,19 @@ end
             
             love.graphics.rectangle("fill", x + (width/10)*i + height/20, y + height/20, width/10 - height/10, height - height/10, 10, 10, 10)
             love.graphics.setColor(0,0,0)
-            love.graphics.printf(towertemplates[selectedTower].cost, x + (width/10)* i + height/20, y )
-
+        end
+        local index = 0
+        for key, value in pairs(towertemplates) do
+            love.graphics.printf(key, x + (width/10)*index + height/20, y + height/20, width/10)
+            if love.keyboard.isDown(tostring(index)) then
+                selectedTower = key
+                hotbarSlot = index + 1
+            end
+            love.graphics.printf("iron:".. value.cost.iron, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 4, width/10)
+            love.graphics.printf("gold:".. value.cost.gold, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 3, width/10)
+            love.graphics.printf("copper:".. value.cost.copper, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 2, width/10)
+            love.graphics.printf("scrap:".. value.cost.scrap, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 1, width/10)
+            index = index + 1
         end
     end
 --//////////////--
@@ -1287,15 +1298,16 @@ function love.draw()
 
 
     cam:detach()
+    if player.buildmode then
+        drawHotbar(love.graphics:getWidth()*(1/8), love.graphics:getHeight()*(5/6), love.graphics:getWidth() * (3/4), love.graphics:getHeight()*(1/6))
+        drawUpgradeTree(love.graphics.getWidth() - 400, 100, 300, 400, 3, 4)
+    end
     drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
     drawBaseHealthBar(20, 35, 400, 5)
     drawInventory(20, 40, 100, 70)
     love.graphics.print(math.floor(FPS), 100, 100)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
-    if player.buildmode then
-        drawHotbar(love.graphics:getWidth()/2 - 500, love.graphics:getHeight()-100, 1000, 100)
-        drawUpgradeTree(love.graphics.getWidth() - 400, 100, 300, 400, 3, 4)
-    end
+    
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -1314,26 +1326,7 @@ function love.keypressed(key, scancode, isrepeat)
     if key == "q" then 
         player.buildmode = not player.buildmode
     end 
-    if key == "1" then
-        selectedTower = "gun"
-        hotbarSlot = 1
-    end
-    if key == "2" then
-        selectedTower = "communication"
-        hotbarSlot = 2
-    end
-    if key == "3" then
-        selectedTower = "bigCommunication"
-        hotbarSlot = 3
-    end
-    if key == "4" then
-        selectedTower = "minigun"
-        hotbarSlot = 4
-    end
-    if key == "5" then
-        selectedTower = "antiAir"
-        hotbarSlot = 5
-    end
+    
 
 
 end
