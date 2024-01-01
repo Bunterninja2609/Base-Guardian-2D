@@ -11,7 +11,7 @@
     particle1 = love.graphics.newImage("textures/"..theme.."/particle1.png")
     selectedTower = "gun"
     worldColor = {0.1,0.1,0.1}
-    globalFont = love.graphics.newImageFont("textures/"..theme.."/font.png", " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
+    globalFont = love.graphics.newFont("textures/"..theme.."/font.ttf", 10)
 
     collisionClass = {
         air = 1,
@@ -1056,6 +1056,7 @@ end
 --////////////--
 
 --User Interface--
+    ui_base_texture = love.graphics.newImage("textures/"..theme.."/ui/tile.png")
     function drawToggleButton(x, y, width, height, text, font, toggleTable, toggleKey)
         -- Check for mouse position and click
         local mouseX, mouseY = love.mouse.getPosition()
@@ -1141,12 +1142,12 @@ end
         if love.mouse.isDown(1) and isMouseInsideButton and priceLocation[priceVariable] >= priceFactor then
             changeLocation[changeVariable] = changeLocation[changeVariable] + changeFactor
             priceLocation[priceVariable] = priceLocation[priceVariable] - priceFactor
-            love.graphics.setColor(0.2,0.2,0.2)  -- Set the flag to true when a tower is placed
+            love.graphics.setColor(0.4, 0.4, 0.4)
             
         else
-            love.graphics.setColor(0.4,0.6,0.4)
+            love.graphics.setColor(1,1,1)
         end
-        love.graphics.rectangle("line", x,y,width,height)
+        love.graphics.draw(ui_base_texture, x,y, 0 , width / ui_base_texture:getWidth(), height / ui_base_texture:getHeight())
         love.graphics.setColor(0,0,0)
         love.graphics.print(changeVariable .. "+" .. changeFactor, x, y)
         if limitedFactor ~= nil then
@@ -1172,6 +1173,7 @@ end
             end
             
             love.graphics.rectangle("fill", x + (width/10)*i + height/20, y + height/20, width/10 - height/10, height - height/10, 10, 10, 10)
+            love.graphics.draw(ui_base_texture, x + (width/10)*i + height/20, y + height/20, 0, (width/10 - height/10) / ui_base_texture:getWidth(), (height - height/10) / ui_base_texture:getWidth())
             love.graphics.setColor(0,0,0)
         end
         local index = 0
@@ -1190,6 +1192,7 @@ end
     end
 --//////////////--
 generateMine()
+love.graphics.setFont(globalFont)
 function love.update(dt)
     FPS = 1 / dt
         if base.health > 0 then
