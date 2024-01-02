@@ -96,12 +96,12 @@
                     player.attributes.jet.cooldownTimer = player.attributes.jet.cooldown
 
                     player.attributes.jet.upgrades = {}
-                    player.attributes.jet.upgrades[1] = {changeLocation = player.attributes.jet, changeVariable = "health", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 5 , limitedFactor = player.attributes.jet.maxHealth}
-                    player.attributes.jet.upgrades[2] = {changeLocation = player.attributes.jet, changeVariable = "maxHealth", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 20 }
-                    player.attributes.jet.upgrades[3] = {changeLocation = player.attributes.jet, changeVariable = "cooldown", changeFactor = - player.attributes.jet.cooldown/8 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 30 }
-                    player.attributes.jet.upgrades[4] = {changeLocation = player, changeVariable = "miningSpeed", changeFactor = 2 , priceLocation = player.inventory, priceVariable = "copper", priceFactor = 10 }
-                    player.attributes.jet.upgrades[5] = {changeLocation = player.attributes.jet, changeVariable = "turningSpeed", changeFactor = 0.01 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1}
-                    player.attributes.jet.upgrades[6] = {changeLocation = player.attributes.jet, changeVariable = "boostSpeed", changeFactor = 10 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1000}
+                    player.attributes.jet.upgrades[1] = {changeLocation = player.attributes.jet, changeVariable = "health", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 5 , limitedFactor = player.attributes.jet.maxHealth, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/health.png")}
+                    player.attributes.jet.upgrades[2] = {changeLocation = player.attributes.jet, changeVariable = "maxHealth", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 20, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/maxhealth.png") }
+                    player.attributes.jet.upgrades[3] = {changeLocation = player.attributes.jet, changeVariable = "cooldown", changeFactor = - player.attributes.jet.cooldown/8 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 30, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/health.png") }
+                    player.attributes.jet.upgrades[4] = {changeLocation = player, changeVariable = "miningSpeed", changeFactor = 2 , priceLocation = player.inventory, priceVariable = "copper", priceFactor = 10 , icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/drill.png")}
+                    player.attributes.jet.upgrades[5] = {changeLocation = player.attributes.jet, changeVariable = "turningSpeed", changeFactor = 0.01 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/turningspeed.png")}
+                    player.attributes.jet.upgrades[6] = {changeLocation = player.attributes.jet, changeVariable = "boostSpeed", changeFactor = 10 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1000, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/boostspeed.png")}
                     
     for i = 0, 7 do
         local direction = {}
@@ -1116,13 +1116,18 @@ end
     end
 
     function drawInventory(x, y, width, height, text, font)
-        love.graphics.setColor(0.5, 0.5, 0.5, 0.9)
-        love.graphics.rectangle("fill", x, y, width, height, 10, 10, 10)
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print("Gold: " .. player.inventory.gold, x, y)
-        love.graphics.print("Iron: " .. player.inventory.iron, x, y + 16)
-        love.graphics.print("Copper: " .. player.inventory.copper, x, y + 32)
-        love.graphics.print("Scrap: " .. player.inventory.scrap, x, y + 48)
+        love.graphics.draw(ui_base_texture, x,y, 0 , width / ui_base_texture:getWidth(), height / ui_base_texture:getHeight())
+        love.graphics.setColor(1, 1, 1)
+        globalFont = love.graphics.newFont("textures/"..theme.."/font.ttf", 20)
+        love.graphics.setFont(globalFont)
+        love.graphics.print("Gold: " .. player.inventory.gold, x + width/10, y + width/10)
+        love.graphics.print("Iron: " .. player.inventory.iron, x + width/10, y + width/10 + 20)
+        love.graphics.print("Copper: " .. player.inventory.copper, x + width/10, y + width/10 + 40)
+        love.graphics.print("Scrap: " .. player.inventory.scrap, x + width/10, y + width/10 + 60)
+
+        globalFont = love.graphics.newFont("textures/"..theme.."/font.ttf", 10)
+        love.graphics.setFont(globalFont)
     end
 
     function drawWaveBar(x, y, width, height)
@@ -1131,7 +1136,7 @@ end
         love.graphics.setColor(0, 0.5, 1)
         love.graphics.rectangle("fill", x, height + y, width, -height * waveCooldown/(30 + (waves + 1) * 2))
     end
-    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor, limitedFactor)
+    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor, limitedFactor, icon)
 
         local mouseX, mouseY = love.mouse.getPosition()
 
@@ -1148,6 +1153,9 @@ end
             love.graphics.setColor(1,1,1)
         end
         love.graphics.draw(ui_base_texture, x,y, 0 , width / ui_base_texture:getWidth(), height / ui_base_texture:getHeight())
+        if icon then
+            love.graphics.draw(icon, x,y, 0 , width / icon:getWidth(), height / icon:getHeight())
+        end
         love.graphics.setColor(0,0,0)
         love.graphics.print(changeVariable .. "+" .. changeFactor, x, y)
         if limitedFactor ~= nil then
@@ -1159,29 +1167,29 @@ end
     function drawUpgradeTree(x, y, width, height, densityX, densityY)
         player.attributes.jet.upgrades[1].limitedFactor = player.attributes.jet.maxHealth
         for i = 0, #player.attributes.jet.upgrades - 1 do
-            drawButton(x + (i * (width/densityX))%width, y + math.floor(i/densityX) * height/densityY, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor)
+            drawButton(x + (i * (width/densityX))%width, y + math.floor(i/densityX) * height/densityY, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor, player.attributes.jet.upgrades[i+1].icon)
         end
     end
     function drawHotbar(x, y, width, height)
         love.graphics.setColor(0.2, 0.2, 0.2, 1)
         love.graphics.rectangle("fill", 0, y, love.graphics:getWidth(), height)
-        for i = 0, 9 do
-            if hotbarSlot == i + 1 then
+        for i = 1, 9 do
+            if hotbarSlot == i  then
                 love.graphics.setColor(1,1,1)
             else
-                love.graphics.setColor(0.5,0.5,0.5)
+                love.graphics.setColor(0.8,0.8,0.8)
             end
             
             love.graphics.rectangle("fill", x + (width/10)*i + height/20, y + height/20, width/10 - height/10, height - height/10, 10, 10, 10)
             love.graphics.draw(ui_base_texture, x + (width/10)*i + height/20, y + height/20, 0, (width/10 - height/10) / ui_base_texture:getWidth(), (height - height/10) / ui_base_texture:getWidth())
             love.graphics.setColor(0,0,0)
         end
-        local index = 0
+        local index = 1
         for key, value in pairs(towertemplates) do
             love.graphics.printf(key, x + (width/10)*index + height/20, y + height/20, width/10)
             if love.keyboard.isDown(tostring(index)) then
                 selectedTower = key
-                hotbarSlot = index + 1
+                hotbarSlot = index 
             end
             love.graphics.printf("iron:".. value.cost.iron, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 4, width/10)
             love.graphics.printf("gold:".. value.cost.gold, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 3, width/10)
@@ -1302,13 +1310,13 @@ function love.draw()
 
     cam:detach()
     if player.buildmode then
-        drawHotbar(love.graphics:getWidth()*(1/8), love.graphics:getHeight()*(5/6), love.graphics:getWidth() * (3/4), love.graphics:getHeight()*(1/6))
-        drawUpgradeTree(love.graphics.getWidth() - 400, 100, 300, 400, 3, 4)
+        drawHotbar(love.graphics:getWidth()*(1/16), love.graphics:getHeight()*(5/6), love.graphics:getWidth() * (7/8), love.graphics:getHeight()*(1/6))
+        drawUpgradeTree(love.graphics.getWidth() - 200, 200, 200, 200, 3, 3)
     end
     drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
     drawBaseHealthBar(20, 35, 400, 5)
-    drawInventory(20, 40, 100, 70)
-    love.graphics.print(math.floor(FPS), 100, 100)
+    drawInventory(love.graphics.getWidth() - 200, 0, 200, 200)
+    --love.graphics.print(math.floor(FPS), 100, 100)
     drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     
 end
