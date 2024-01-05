@@ -28,6 +28,19 @@
     grassTextures[3] = love.graphics.newQuad(32, 32, 32, 32, grassImage)
     grassTextures[4] = love.graphics.newQuad(0, 32, 32, 32, grassImage)
 
+    base = {}
+        base.body = love.physics.newBody(World, 1000, 300, "static")
+        base.shape = love.physics.newChainShape(true, 56, 24,  64, 24,  64, 0,  16, 0,  0, 16,  0, 48,  16, 64,  64, 64,  54, 40,  56, 40,  56, 56,  16, 56,  8, 48,  8, 16,  16, 8,  56, 8)
+        base.fixture = love.physics.newFixture(base.body, base.shape)
+        base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
+        base.layer1 = love.graphics.newQuad(base.texture:getWidth()/2, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
+        base.layer2 = love.graphics.newQuad(0, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
+        base.communictaionDistance = 64
+        base.health = 1000
+        base.maxHealth = 1000
+        base.fixture:setCategory(collisionClass.friendly, collisionClass.ground, collisionClass.air)
+        
+    
     wall = love.graphics.newImage("textures/" .. theme .. "/wall.png")
 
     stoneTexture = love.graphics.newImage("textures/" .. theme .. "/stone.png")
@@ -97,11 +110,12 @@
 
                     player.attributes.jet.upgrades = {}
                     player.attributes.jet.upgrades[1] = {changeLocation = player.attributes.jet, changeVariable = "health", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 5 , limitedFactor = player.attributes.jet.maxHealth, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/health.png")}
-                    player.attributes.jet.upgrades[2] = {changeLocation = player.attributes.jet, changeVariable = "maxHealth", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 20, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/maxhealth.png") }
-                    player.attributes.jet.upgrades[3] = {changeLocation = player.attributes.jet, changeVariable = "cooldown", changeFactor = - player.attributes.jet.cooldown/8 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 30, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/health.png") }
-                    player.attributes.jet.upgrades[4] = {changeLocation = player, changeVariable = "miningSpeed", changeFactor = 2 , priceLocation = player.inventory, priceVariable = "copper", priceFactor = 10 , icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/drill.png")}
-                    player.attributes.jet.upgrades[5] = {changeLocation = player.attributes.jet, changeVariable = "turningSpeed", changeFactor = 0.01 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/turningspeed.png")}
-                    player.attributes.jet.upgrades[6] = {changeLocation = player.attributes.jet, changeVariable = "boostSpeed", changeFactor = 10 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1000, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/boostspeed.png")}
+                    player.attributes.jet.upgrades[2] = {changeLocation = base, changeVariable = "health", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "iron", priceFactor = 1, limitedFactor = base.maxHealth, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/basehealth.png")}
+                    player.attributes.jet.upgrades[3] = {changeLocation = player.attributes.jet, changeVariable = "maxHealth", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 20, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/maxhealth.png") }
+                    player.attributes.jet.upgrades[4] = {changeLocation = player.attributes.jet, changeVariable = "cooldown", changeFactor = - player.attributes.jet.cooldown/8 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 30, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/cooldown.png") }
+                    player.attributes.jet.upgrades[5] = {changeLocation = player, changeVariable = "miningSpeed", changeFactor = 2 , priceLocation = player.inventory, priceVariable = "copper", priceFactor = 10 , icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/drill.png")}
+                    player.attributes.jet.upgrades[6] = {changeLocation = player.attributes.jet, changeVariable = "turningSpeed", changeFactor = 0.01 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/turningspeed.png")}
+                    player.attributes.jet.upgrades[7] = {changeLocation = player.attributes.jet, changeVariable = "boostSpeed", changeFactor = 10 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1000, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/boostspeed.png")}
                     
     for i = 0, 7 do
         local direction = {}
@@ -205,18 +219,6 @@
             dropCount = 5
         }
     }
-    base = {}
-        base.body = love.physics.newBody(World, 1000, 300, "static")
-        base.shape = love.physics.newChainShape(true, 56, 24,  64, 24,  64, 0,  16, 0,  0, 16,  0, 48,  16, 64,  64, 64,  54, 40,  56, 40,  56, 56,  16, 56,  8, 48,  8, 16,  16, 8,  56, 8)
-        base.fixture = love.physics.newFixture(base.body, base.shape)
-        base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
-        base.layer1 = love.graphics.newQuad(base.texture:getWidth()/2, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
-        base.layer2 = love.graphics.newQuad(0, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
-        base.communictaionDistance = 64
-        base.health = 1000
-        base.maxHealth = 1000
-        base.fixture:setCategory(collisionClass.friendly, collisionClass.ground, collisionClass.air)
-        
     border = {}
         border.body = love.physics.newBody(World, 0, 0, "static")
         border.shape = love.physics.newChainShape(false,  base.body:getX() + 64, base.body:getY() + 64, base.body:getX() + 64, base.body:getY()*2,0, base.body:getY()*2, 0, 64, base.body:getX() + 64, 64, base.body:getX() + 64, base.body:getY())
