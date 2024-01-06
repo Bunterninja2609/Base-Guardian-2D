@@ -600,9 +600,11 @@ function createWave()
     for i = 1, waves/3 - 5.5, 1 do
         createEnemy("mobileSurfaceToAir")
     end
+    /* 
     for i = 1, (math.cos((waves * math.pi)%1) + 1) * waves/4, 1 do
         createEnemy("mortar")
-    end
+    end 
+    */
     for i = 1, 2* 1.1^(waves-19)-0.3, 1 do
         createEnemy("jet1")
     end
