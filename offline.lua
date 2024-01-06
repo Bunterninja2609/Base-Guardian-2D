@@ -474,6 +474,9 @@ function generateMine()
     end
 end
 function drawMine()
+    love.graphics.setColor(0.35, 0.35, 0.35)
+    love.graphics.rectangle("fill",base.body:getX() + 64 - 16, base.body:getY() - 32/2*16 + 32, 256*16 + 16, 32* 16)
+    love.graphics.setColor(1, 1, 1)
     for i, tile in ipairs(mine) do
         love.graphics.setColor(0.2, 0.2, 0.2)
         love.graphics.polygon("fill", tile.body:getX()- 1, tile.body:getY() + 1, tile.body:getX(), tile.body:getY(), tile.body:getX() + 16, tile.body:getY(), tile.body:getX() + 16, tile.body:getY() + 16, tile.body:getX() + 15, tile.body:getY() + 17, tile.body:getX() - 1, tile.body:getY() + 17)
@@ -631,7 +634,14 @@ function updateWaves(dt)
     end
 end
 function gameOver()
-    love.graphics.rectangle("fill", 10, 10, love.graphics:getWidth() - 20, love.graphics.getHeight() - 20)
+    love.graphics.setColor(1,0,0,0.5)
+    love.graphics.rectangle("fill", 0, 0, love.graphics:getWidth(), love.graphics.getHeight())
+    
+    love.graphics.setColor(1,1,1,1)
+    globalFont = love.graphics.newFont("textures/"..theme.."/font.ttf", 60)
+    love.graphics.setFont(globalFont)
+    love.graphics.printf("You Died at Wave ".. waves, love.graphics:getWidth()/2 - 200,100, 400)
+    
 end
 
 --enemies--
@@ -1303,7 +1313,7 @@ function love.draw()
         end
         love.graphics.setColor(1, 1, 1, 1)
         if player.body:getX() > 0 + base.body:getX() and player.body:getX() < 64 + base.body:getX() and player.body:getY() > 0 + base.body:getY() and player.body:getY() < 64 + base.body:getY() then 
-            love.graphics.setColor(1, 1, 1, 0.5)
+            love.graphics.setColor(1, 1, 1, 0)
         end
         love.graphics.draw(base.texture, base.layer2, base.body:getX(), base.body:getY() - 32)
         
@@ -1311,15 +1321,19 @@ function love.draw()
 
 
     cam:detach()
-    if player.buildmode then
-        drawHotbar(love.graphics:getWidth()*(1/16), love.graphics:getHeight()*(5/6), love.graphics:getWidth() * (7/8), love.graphics:getHeight()*(1/6))
-        drawUpgradeTree(love.graphics.getWidth() - 200, 200, 200, 200, 3, 3)
+    if base.health > 0 then
+        if player.buildmode then
+            drawHotbar(love.graphics:getWidth()*(1/16), love.graphics:getHeight()*(5/6), love.graphics:getWidth() * (7/8), love.graphics:getHeight()*(1/6))
+            drawUpgradeTree(love.graphics.getWidth() - 200, 200, 200, 200, 3, 3)
+        end
+        drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
+        drawBaseHealthBar(20, 35, 400, 5)
+        drawInventory(love.graphics.getWidth() - 200, 0, 200, 200)
+        --love.graphics.print(math.floor(FPS), 100, 100)
+        drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
+    else
+        gameOver()
     end
-    drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
-    drawBaseHealthBar(20, 35, 400, 5)
-    drawInventory(love.graphics.getWidth() - 200, 0, 200, 200)
-    --love.graphics.print(math.floor(FPS), 100, 100)
-    drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     
 end
 
