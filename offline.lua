@@ -47,7 +47,7 @@
     copperTexture = love.graphics.newImage("textures/" .. theme .. "/copper.png")
     goldTexture = love.graphics.newImage("textures/" .. theme .. "/gold.png")
     ironTexture = love.graphics.newImage("textures/" .. theme .. "/iron.png")
-    if true then
+    if false then
         player = {}
             player.inventory = {
                 gold = 9999,
