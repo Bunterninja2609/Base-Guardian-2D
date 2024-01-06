@@ -965,7 +965,7 @@ end
         end
         local template = towertemplates[type]
         local hasMoney = false
-        if player.inventory.copper >=  template.cost.copper and player.inventory.iron >=  template.cost.iron and  player.inventory.gold >= template.cost.gold and player.inventory.scrap >=  template.cost.scrap then
+        if player.inventory.copper >=  template.cost.copper and player.inventory.iron >=  template.cost.iron and  player.inventory.gold >= template.cost.gold and player.inventory.scrap >=  template.cost.scrap and isInCommunicationrange and not isOverlapping then
             hasMoney = true
             player.inventory.copper = player.inventory.copper - template.cost.copper
             player.inventory.gold = player.inventory.gold - template.cost.gold
