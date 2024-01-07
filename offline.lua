@@ -1207,7 +1207,11 @@ end
             love.graphics.printf("gold:".. value.cost.gold, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 3, width/10)
             love.graphics.printf("copper:".. value.cost.copper, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 2, width/10)
             love.graphics.printf("scrap:".. value.cost.scrap, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 1, width/10)
+            if hotbarSlot == index then
+                selectedTower = key
+            end
             index = index + 1
+            
         end
     end
 --//////////////--
