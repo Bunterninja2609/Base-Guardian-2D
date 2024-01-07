@@ -1263,12 +1263,13 @@ function love.update(dt)
     end
 end
 function love.draw()
-    love.graphics.setBackgroundColor(0.35, 0.35, 0.35)
+    love.graphics.setBackgroundColor(0.35, 0.75, 0)
     love.graphics.setColor(worldColor)
     cam:attach()
         local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
         
         -- Draw temporary Background
+        love.graphics.setColor(1, 1, 1)
         for i = 0, base.body:getX()/32 , 1 do
             for j = 2, (base.body:getY()/32)*2, 1 do
                 love.graphics.draw(grassImage, grassTextures[(math.floor(i/2)+j)%3+1],i * 32,j * 32)
@@ -1285,7 +1286,7 @@ function love.draw()
         end
         drawTower()
         love.graphics.setColor(worldColor)
-        for i = -4, 4 do
+        for i = -2, 2 do
             love.graphics.setColor(worldColor)
             love.graphics.draw(wall, base.body:getX() - 16, base.body:getY() + 16 + i * 144 - 72)
             
