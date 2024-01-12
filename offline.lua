@@ -1,4 +1,4 @@
- --Variables
+--Variables
     FPS = 0
     love.physics.setMeter(64)
     love.graphics.setDefaultFilter("nearest", "nearest")
@@ -73,7 +73,6 @@
         player.buildZoom = 2
         player.body = love.physics.newBody(World, 1032, 332, "dynamic")
         player.timer = 0
-        player.dashDirection = {x = 0, y = 0}
         player.shape = love.physics.newCircleShape(5)
         player.fixture = love.physics.newFixture(player.body, player.shape)
         player.fixture:setCategory(collisionClass.friendly, collisionClass.ground)
@@ -86,7 +85,6 @@
             player.jet.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
             player.jet.direction = 1 * math.pi
             player.jet.wantedDirection = 0 * math.pi
-            
             player.attributes = {}
                 player.attributes.isInJet = false
                 player.attributes.jet = {}
@@ -719,20 +717,15 @@ end
                 end
 
             end
-            
-
-
             local wantedX = enemy.lockedTarget:getBody():getX() - enemy.x
             local wantedY = enemy.lockedTarget:getBody():getY() - enemy.y
             local currentVelocityX, currentVelocityY = enemy.body:getLinearVelocity()
             local currentSpeed = math.sqrt(currentVelocityX^2 + currentVelocityY^2)
             local directionDifference = 0
-
             if currentSpeed > 0 then
                 local currentDirection = math.atan2(currentVelocityY, currentVelocityX)
                 enemy.direction = currentDirection
             end
-
             if wantedX ~= 0 or wantedY ~= 0 then
                 local wantedDirection = math.atan2(wantedY, wantedX)
 
