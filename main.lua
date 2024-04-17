@@ -148,8 +148,8 @@ function updateEnemies()
         local wantedX = -enemy.x + enemy.lockedTarget:getX()
         local wantedY = -enemy.y + enemy.lockedTarget:getY()
         local wantedDirection = math.atan2(wantedX, wantedY)
-        local directionDifference = -enemy.direction + wantedDirection
-        enemy.direction = enemy.direction + directiondifference * 1
+        local directionDifference = enemy.direction - wantedDirection
+        enemy.direction = enemy.direction - directiondifference * 1
         enemy.body:setLinearVelocity(math.cos(enemy.direction) * enemy.speed, math.sin(enemy.direction) * enemy.speed)
         enemy.x = enemy.body:getX()
         enemy.y = enemy.body:getY()
@@ -175,15 +175,17 @@ end
 
 
 function love.update(dt)
-    updateEnemies()
-    if player.attributes.isInJet then
-        movePlayerInJet()
-    else
+    FPS = 1 / dt
+    if state.current == "titlescreen"then
+        width = love.graphics.getWidth()
+        height = love.graphics.getHeight()
         
+    elseif state.current == "offline" then
+        offline = require("offline")
+    elseif state.current == "online" then
+        online = require("online")
     end
-    World:update(dt)
 end
-
 function love.draw()
     love.graphics.setBackgroundColor(0.2, 0.6, 0.2)
     love.graphics.setColor(1, 1, 1)
@@ -211,5 +213,10 @@ end
 
 
 
- 
+function love.keypressed(key, scancode, isrepeat)
+    if key == "escape" then 
+        fullscreen = not fullscreen
+        love.window.setFullscreen(fullscreen, "desktop") 	
+    end 
+end
 --Hello World
