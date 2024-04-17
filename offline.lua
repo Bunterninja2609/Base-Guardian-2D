@@ -1,4 +1,4 @@
- --Variables
+--Variables
     FPS = 0
     love.physics.setMeter(64)
     love.graphics.setDefaultFilter("nearest", "nearest")
@@ -28,13 +28,26 @@
     grassTextures[3] = love.graphics.newQuad(32, 32, 32, 32, grassImage)
     grassTextures[4] = love.graphics.newQuad(0, 32, 32, 32, grassImage)
 
+    base = {}
+        base.body = love.physics.newBody(World, 1000, 300, "static")
+        base.shape = love.physics.newChainShape(true, 56, 24,  64, 24,  64, 0,  16, 0,  0, 16,  0, 48,  16, 64,  64, 64,  54, 40,  56, 40,  56, 56,  16, 56,  8, 48,  8, 16,  16, 8,  56, 8)
+        base.fixture = love.physics.newFixture(base.body, base.shape)
+        base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
+        base.layer1 = love.graphics.newQuad(base.texture:getWidth()/2, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
+        base.layer2 = love.graphics.newQuad(0, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
+        base.communictaionDistance = 64
+        base.health = 1000
+        base.maxHealth = 1000
+        base.fixture:setCategory(collisionClass.friendly, collisionClass.ground, collisionClass.air)
+        
+    
     wall = love.graphics.newImage("textures/" .. theme .. "/wall.png")
 
     stoneTexture = love.graphics.newImage("textures/" .. theme .. "/stone.png")
     copperTexture = love.graphics.newImage("textures/" .. theme .. "/copper.png")
     goldTexture = love.graphics.newImage("textures/" .. theme .. "/gold.png")
     ironTexture = love.graphics.newImage("textures/" .. theme .. "/iron.png")
-    if true then
+    if false then
         player = {}
             player.inventory = {
                 gold = 9999,
@@ -60,7 +73,6 @@
         player.buildZoom = 2
         player.body = love.physics.newBody(World, 1032, 332, "dynamic")
         player.timer = 0
-        player.dashDirection = {x = 0, y = 0}
         player.shape = love.physics.newCircleShape(5)
         player.fixture = love.physics.newFixture(player.body, player.shape)
         player.fixture:setCategory(collisionClass.friendly, collisionClass.ground)
@@ -73,7 +85,6 @@
             player.jet.fixture:setMask(collisionClass.ground, collisionClass.enemy, collisionClass.friendly)
             player.jet.direction = 1 * math.pi
             player.jet.wantedDirection = 0 * math.pi
-            
             player.attributes = {}
                 player.attributes.isInJet = false
                 player.attributes.jet = {}
@@ -97,11 +108,12 @@
 
                     player.attributes.jet.upgrades = {}
                     player.attributes.jet.upgrades[1] = {changeLocation = player.attributes.jet, changeVariable = "health", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 5 , limitedFactor = player.attributes.jet.maxHealth, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/health.png")}
-                    player.attributes.jet.upgrades[2] = {changeLocation = player.attributes.jet, changeVariable = "maxHealth", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 20, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/maxhealth.png") }
-                    player.attributes.jet.upgrades[3] = {changeLocation = player.attributes.jet, changeVariable = "cooldown", changeFactor = - player.attributes.jet.cooldown/8 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 30, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/health.png") }
-                    player.attributes.jet.upgrades[4] = {changeLocation = player, changeVariable = "miningSpeed", changeFactor = 2 , priceLocation = player.inventory, priceVariable = "copper", priceFactor = 10 , icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/drill.png")}
-                    player.attributes.jet.upgrades[5] = {changeLocation = player.attributes.jet, changeVariable = "turningSpeed", changeFactor = 0.01 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/turningspeed.png")}
-                    player.attributes.jet.upgrades[6] = {changeLocation = player.attributes.jet, changeVariable = "boostSpeed", changeFactor = 10 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1000, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/boostspeed.png")}
+                    player.attributes.jet.upgrades[2] = {changeLocation = base, changeVariable = "health", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "iron", priceFactor = 1, limitedFactor = base.maxHealth, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/basehealth.png")}
+                    player.attributes.jet.upgrades[3] = {changeLocation = player.attributes.jet, changeVariable = "maxHealth", changeFactor = 5 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 20, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/maxhealth.png") }
+                    player.attributes.jet.upgrades[4] = {changeLocation = player.attributes.jet, changeVariable = "cooldown", changeFactor = - player.attributes.jet.cooldown/8 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 30, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/cooldown.png") }
+                    player.attributes.jet.upgrades[5] = {changeLocation = player, changeVariable = "miningSpeed", changeFactor = 2 , priceLocation = player.inventory, priceVariable = "copper", priceFactor = 10 , icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/drill.png")}
+                    player.attributes.jet.upgrades[6] = {changeLocation = player.attributes.jet, changeVariable = "turningSpeed", changeFactor = 0.01 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/turningspeed.png")}
+                    player.attributes.jet.upgrades[7] = {changeLocation = player.attributes.jet, changeVariable = "boostSpeed", changeFactor = 10 , priceLocation = player.inventory, priceVariable = "scrap", priceFactor = 4 , limitedFactor = 1000, icon = love.graphics.newImage("textures/"..theme.."/ui/upgrade/boostspeed.png")}
                     
     for i = 0, 7 do
         local direction = {}
@@ -205,18 +217,6 @@
             dropCount = 5
         }
     }
-    base = {}
-        base.body = love.physics.newBody(World, 1000, 300, "static")
-        base.shape = love.physics.newChainShape(true, 56, 24,  64, 24,  64, 0,  16, 0,  0, 16,  0, 48,  16, 64,  64, 64,  54, 40,  56, 40,  56, 56,  16, 56,  8, 48,  8, 16,  16, 8,  56, 8)
-        base.fixture = love.physics.newFixture(base.body, base.shape)
-        base.texture = love.graphics.newImage("textures/" .. theme .. "/base.png")
-        base.layer1 = love.graphics.newQuad(base.texture:getWidth()/2, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
-        base.layer2 = love.graphics.newQuad(0, 0, base.texture:getWidth()/2, base.texture:getHeight(), base.texture)
-        base.communictaionDistance = 64
-        base.health = 1000
-        base.maxHealth = 1000
-        base.fixture:setCategory(collisionClass.friendly, collisionClass.ground, collisionClass.air)
-        
     border = {}
         border.body = love.physics.newBody(World, 0, 0, "static")
         border.shape = love.physics.newChainShape(false,  base.body:getX() + 64, base.body:getY() + 64, base.body:getX() + 64, base.body:getY()*2,0, base.body:getY()*2, 0, 64, base.body:getX() + 64, 64, base.body:getX() + 64, base.body:getY())
@@ -378,6 +378,7 @@
     mine = {}
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
+    timeSinceMouseMoved = 0
 
     waves = 0
 
@@ -472,6 +473,9 @@ function generateMine()
     end
 end
 function drawMine()
+    love.graphics.setColor(0.35, 0.35, 0.35)
+    love.graphics.rectangle("fill",base.body:getX() + 64 - 16, base.body:getY() - 32/2*16 + 32, 256*16 + 16, 32* 16)
+    love.graphics.setColor(1, 1, 1)
     for i, tile in ipairs(mine) do
         love.graphics.setColor(0.2, 0.2, 0.2)
         love.graphics.polygon("fill", tile.body:getX()- 1, tile.body:getY() + 1, tile.body:getX(), tile.body:getY(), tile.body:getX() + 16, tile.body:getY(), tile.body:getX() + 16, tile.body:getY() + 16, tile.body:getX() + 15, tile.body:getY() + 17, tile.body:getX() - 1, tile.body:getY() + 17)
@@ -596,8 +600,8 @@ function createWave()
         createEnemy("mobileSurfaceToAir")
     end
     for i = 1, (math.cos((waves * math.pi)%1) + 1) * waves/4, 1 do
-        createEnemy("mortar")
-    end
+      -- createEnemy("mortar")
+    end 
     for i = 1, 2* 1.1^(waves-19)-0.3, 1 do
         createEnemy("jet1")
     end
@@ -629,7 +633,14 @@ function updateWaves(dt)
     end
 end
 function gameOver()
-    love.graphics.rectangle("fill", 10, 10, love.graphics:getWidth() - 20, love.graphics.getHeight() - 20)
+    love.graphics.setColor(1,0,0,0.5)
+    love.graphics.rectangle("fill", 0, 0, love.graphics:getWidth(), love.graphics.getHeight())
+    
+    love.graphics.setColor(1,1,1,1)
+    globalFont = love.graphics.newFont("textures/"..theme.."/font.ttf", 60)
+    love.graphics.setFont(globalFont)
+    love.graphics.printf("You Died at Wave ".. waves, love.graphics:getWidth()/2 - 200,100, 400)
+    
 end
 
 --enemies--
@@ -707,20 +718,15 @@ end
                 end
 
             end
-            
-
-
             local wantedX = enemy.lockedTarget:getBody():getX() - enemy.x
             local wantedY = enemy.lockedTarget:getBody():getY() - enemy.y
             local currentVelocityX, currentVelocityY = enemy.body:getLinearVelocity()
             local currentSpeed = math.sqrt(currentVelocityX^2 + currentVelocityY^2)
             local directionDifference = 0
-
             if currentSpeed > 0 then
                 local currentDirection = math.atan2(currentVelocityY, currentVelocityX)
                 enemy.direction = currentDirection
             end
-
             if wantedX ~= 0 or wantedY ~= 0 then
                 local wantedDirection = math.atan2(wantedY, wantedX)
 
@@ -953,7 +959,7 @@ end
         end
         local template = towertemplates[type]
         local hasMoney = false
-        if player.inventory.copper >=  template.cost.copper and player.inventory.iron >=  template.cost.iron and  player.inventory.gold >= template.cost.gold and player.inventory.scrap >=  template.cost.scrap then
+        if player.inventory.copper >=  template.cost.copper and player.inventory.iron >=  template.cost.iron and  player.inventory.gold >= template.cost.gold and player.inventory.scrap >=  template.cost.scrap and isInCommunicationrange and not isOverlapping then
             hasMoney = true
             player.inventory.copper = player.inventory.copper - template.cost.copper
             player.inventory.gold = player.inventory.gold - template.cost.gold
@@ -1105,6 +1111,9 @@ end
             love.graphics.setColor(0, 1 ,0)
             love.graphics.rectangle("fill", x, y, width * player.attributes.jet.health / player.attributes.jet.maxHealth, heigth)
         end
+        if isInside(x,y,width,height,mouseX,mouseY) then
+            showInformation("This is your Jets Health Bar. If it depletes you will not be able to use the Jet. You can use scrap to repair it.")
+        end
     end
     function drawBaseHealthBar(x, y, width, heigth)
         love.graphics.setColor(0, 0 ,0)
@@ -1112,6 +1121,9 @@ end
         if base.health / base.maxHealth > 0 then
             love.graphics.setColor(0, 0 ,1)
             love.graphics.rectangle("fill", x, y, width * base.health / base.maxHealth, heigth)
+        end
+        if isInside(x,y,width,height,mouseX,mouseY) then
+            showInformation("This is your Bases Health Bar. If it depletes you will lose. Defend your base at all cost!")
         end
     end
 
@@ -1128,6 +1140,9 @@ end
 
         globalFont = love.graphics.newFont("textures/"..theme.."/font.ttf", 10)
         love.graphics.setFont(globalFont)
+        if isInside(x,y,width,height,mouseX,mouseY) then
+            showInformation("This is your Inventory. East of your base is a big mine, where you can get minerals. The minerals can be used for Upgrades and Towers.")
+        end
     end
 
     function drawWaveBar(x, y, width, height)
@@ -1135,8 +1150,11 @@ end
         love.graphics.rectangle("fill", x, y, width, height)
         love.graphics.setColor(0, 0.5, 1)
         love.graphics.rectangle("fill", x, height + y, width, -height * waveCooldown/(30 + (waves + 1) * 2))
+        if isInside(x,y,width,height,mouseX,mouseY) then
+            showInformation("This is the wave Bar. If it fully fills up a wave of enemies will spawn. Keep an eye on it at all times!")
+        end
     end
-    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor, limitedFactor, icon)
+    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor, limitedFactor, icon, information)
 
         local mouseX, mouseY = love.mouse.getPosition()
 
@@ -1163,11 +1181,14 @@ end
                 changeLocation[changeVariable] = limitedFactor
             end
         end
+        if isInside(x,y,width,height,mouseX,mouseY) then
+            showInformation(information)
+        end
     end
     function drawUpgradeTree(x, y, width, height, densityX, densityY)
         player.attributes.jet.upgrades[1].limitedFactor = player.attributes.jet.maxHealth
         for i = 0, #player.attributes.jet.upgrades - 1 do
-            drawButton(x + (i * (width/densityX))%width, y + math.floor(i/densityX) * height/densityY, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor, player.attributes.jet.upgrades[i+1].icon)
+            drawButton(x + (i * (width/densityX))%width, y + math.floor(i/densityX) * height/densityY, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor, player.attributes.jet.upgrades[i+1].icon, player.attributes.jet.upgrades[i+1].information)
         end
     end
     function drawHotbar(x, y, width, height)
@@ -1195,13 +1216,33 @@ end
             love.graphics.printf("gold:".. value.cost.gold, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 3, width/10)
             love.graphics.printf("copper:".. value.cost.copper, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 2, width/10)
             love.graphics.printf("scrap:".. value.cost.scrap, x + (width/10)*index + height/20, y + height/20 + height - height/10 - 20 * 1, width/10)
+            if hotbarSlot == index then
+                selectedTower = key
+            end
             index = index + 1
+            
+        end
+    end
+    function isInside(x, y, width, height, x2, y2)
+        return x2 > x and y2 > Y and x2 < x + width and y2 < y + heigth
+    end
+    function showInformation(information, atMouse, x, y)
+        if timeSinceMouseMoved > 1.5 then
+            if not atMouse then
+                x = mouseX
+                y = mouseY
+            end
+            love.graphics.setColor(0.5, 0.5, 0.5, 0.9)
+            love.graphics.rectangle("fill", x, y, 200, 50)
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.printf(information, x, y, 200)
         end
     end
 --//////////////--
 generateMine()
 love.graphics.setFont(globalFont)
 function love.update(dt)
+    timeSinceMouseMoved = timeSinceMouseMoved + dt
     FPS = 1 / dt
         if base.health > 0 then
         worldScale = baseZoom + additionalZoom
@@ -1251,12 +1292,13 @@ function love.update(dt)
     end
 end
 function love.draw()
-    love.graphics.setBackgroundColor(0.35, 0.35, 0.35)
+    love.graphics.setBackgroundColor(0.35, 0.75, 0)
     love.graphics.setColor(worldColor)
     cam:attach()
         local playerX, playerY = player.jet.body:getX(), player.jet.body:getY()
         
         -- Draw temporary Background
+        love.graphics.setColor(1, 1, 1)
         for i = 0, base.body:getX()/32 , 1 do
             for j = 2, (base.body:getY()/32)*2, 1 do
                 love.graphics.draw(grassImage, grassTextures[(math.floor(i/2)+j)%3+1],i * 32,j * 32)
@@ -1273,7 +1315,7 @@ function love.draw()
         end
         drawTower()
         love.graphics.setColor(worldColor)
-        for i = -4, 4 do
+        for i = -2, 2 do
             love.graphics.setColor(worldColor)
             love.graphics.draw(wall, base.body:getX() - 16, base.body:getY() + 16 + i * 144 - 72)
             
@@ -1301,7 +1343,7 @@ function love.draw()
         end
         love.graphics.setColor(1, 1, 1, 1)
         if player.body:getX() > 0 + base.body:getX() and player.body:getX() < 64 + base.body:getX() and player.body:getY() > 0 + base.body:getY() and player.body:getY() < 64 + base.body:getY() then 
-            love.graphics.setColor(1, 1, 1, 0.5)
+            love.graphics.setColor(1, 1, 1, 0)
         end
         love.graphics.draw(base.texture, base.layer2, base.body:getX(), base.body:getY() - 32)
         
@@ -1309,15 +1351,19 @@ function love.draw()
 
 
     cam:detach()
-    if player.buildmode then
-        drawHotbar(love.graphics:getWidth()*(1/16), love.graphics:getHeight()*(5/6), love.graphics:getWidth() * (7/8), love.graphics:getHeight()*(1/6))
-        drawUpgradeTree(love.graphics.getWidth() - 200, 200, 200, 200, 3, 3)
+    if base.health > 0 then
+        if player.buildmode then
+            drawHotbar(love.graphics:getWidth()*(1/16), love.graphics:getHeight()*(5/6), love.graphics:getWidth() * (7/8), love.graphics:getHeight()*(1/6))
+            drawUpgradeTree(love.graphics.getWidth() - 200, 200, 200, 200, 3, 3)
+        end
+        drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
+        drawBaseHealthBar(20, 35, 400, 5)
+        drawInventory(love.graphics.getWidth() - 200, 0, 200, 200)
+        --love.graphics.print(math.floor(FPS), 100, 100)
+        drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
+    else
+        gameOver()
     end
-    drawPlayerHealthBar(20, 20, 400 / 200 * player.attributes.jet.maxHealth, 10)
-    drawBaseHealthBar(20, 35, 400, 5)
-    drawInventory(love.graphics.getWidth() - 200, 0, 200, 200)
-    --love.graphics.print(math.floor(FPS), 100, 100)
-    drawWaveBar(20, love.graphics:getHeight() - 320, 50, 300)
     
 end
 
@@ -1351,5 +1397,9 @@ function love.wheelmoved(x, y)
     if additionalZoom < -3 * worldScale then
         additionalZoom = -3 * worldScale
     end
+end
+
+function love.mousemoved()
+    timeSinceMouseMoved = 0
 end
 --Hello World
