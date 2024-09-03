@@ -378,7 +378,6 @@
     mine = {}
     mouseX = (cam.x + love.mouse.getX() / worldScale - love.graphics.getWidth() / 2 / worldScale)
     mouseY = (cam.y + love.mouse.getY() / worldScale - love.graphics.getHeight() / 2 / worldScale) 
-    timeSinceMouseMoved = 0
 
     waves = 0
 
@@ -1111,9 +1110,6 @@ end
             love.graphics.setColor(0, 1 ,0)
             love.graphics.rectangle("fill", x, y, width * player.attributes.jet.health / player.attributes.jet.maxHealth, heigth)
         end
-        if isInside(x,y,width,height,mouseX,mouseY) then
-            showInformation("This is your Jets Health Bar. If it depletes you will not be able to use the Jet. You can use scrap to repair it.")
-        end
     end
     function drawBaseHealthBar(x, y, width, heigth)
         love.graphics.setColor(0, 0 ,0)
@@ -1121,9 +1117,6 @@ end
         if base.health / base.maxHealth > 0 then
             love.graphics.setColor(0, 0 ,1)
             love.graphics.rectangle("fill", x, y, width * base.health / base.maxHealth, heigth)
-        end
-        if isInside(x,y,width,height,mouseX,mouseY) then
-            showInformation("This is your Bases Health Bar. If it depletes you will lose. Defend your base at all cost!")
         end
     end
 
@@ -1140,9 +1133,6 @@ end
 
         globalFont = love.graphics.newFont("textures/"..theme.."/font.ttf", 10)
         love.graphics.setFont(globalFont)
-        if isInside(x,y,width,height,mouseX,mouseY) then
-            showInformation("This is your Inventory. East of your base is a big mine, where you can get minerals. The minerals can be used for Upgrades and Towers.")
-        end
     end
 
     function drawWaveBar(x, y, width, height)
@@ -1150,11 +1140,8 @@ end
         love.graphics.rectangle("fill", x, y, width, height)
         love.graphics.setColor(0, 0.5, 1)
         love.graphics.rectangle("fill", x, height + y, width, -height * waveCooldown/(30 + (waves + 1) * 2))
-        if isInside(x,y,width,height,mouseX,mouseY) then
-            showInformation("This is the wave Bar. If it fully fills up a wave of enemies will spawn. Keep an eye on it at all times!")
-        end
     end
-    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor, limitedFactor, icon, information)
+    function drawButton(x, y, width, height, changeLocation, changeVariable, changeFactor, priceLocation, priceVariable, priceFactor, limitedFactor, icon)
 
         local mouseX, mouseY = love.mouse.getPosition()
 
@@ -1181,14 +1168,11 @@ end
                 changeLocation[changeVariable] = limitedFactor
             end
         end
-        if isInside(x,y,width,height,mouseX,mouseY) then
-            showInformation(information)
-        end
     end
     function drawUpgradeTree(x, y, width, height, densityX, densityY)
         player.attributes.jet.upgrades[1].limitedFactor = player.attributes.jet.maxHealth
         for i = 0, #player.attributes.jet.upgrades - 1 do
-            drawButton(x + (i * (width/densityX))%width, y + math.floor(i/densityX) * height/densityY, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor, player.attributes.jet.upgrades[i+1].icon, player.attributes.jet.upgrades[i+1].information)
+            drawButton(x + (i * (width/densityX))%width, y + math.floor(i/densityX) * height/densityY, width/densityX, height/densityY,       player.attributes.jet.upgrades[i+1].changeLocation, player.attributes.jet.upgrades[i+1].changeVariable, player.attributes.jet.upgrades[i+1].changeFactor,  player.attributes.jet.upgrades[i+1].priceLocation, player.attributes.jet.upgrades[i+1].priceVariable, player.attributes.jet.upgrades[i+1].priceFactor , player.attributes.jet.upgrades[i+1].limitedFactor, player.attributes.jet.upgrades[i+1].icon)
         end
     end
     function drawHotbar(x, y, width, height)
@@ -1223,26 +1207,10 @@ end
             
         end
     end
-    function isInside(x, y, width, height, x2, y2)
-        return x2 > x and y2 > Y and x2 < x + width and y2 < y + heigth
-    end
-    function showInformation(information, atMouse, x, y)
-        if timeSinceMouseMoved > 1.5 then
-            if not atMouse then
-                x = mouseX
-                y = mouseY
-            end
-            love.graphics.setColor(0.5, 0.5, 0.5, 0.9)
-            love.graphics.rectangle("fill", x, y, 200, 50)
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.printf(information, x, y, 200)
-        end
-    end
 --//////////////--
 generateMine()
 love.graphics.setFont(globalFont)
 function love.update(dt)
-    timeSinceMouseMoved = timeSinceMouseMoved + dt
     FPS = 1 / dt
         if base.health > 0 then
         worldScale = baseZoom + additionalZoom
@@ -1397,9 +1365,5 @@ function love.wheelmoved(x, y)
     if additionalZoom < -3 * worldScale then
         additionalZoom = -3 * worldScale
     end
-end
-
-function love.mousemoved()
-    timeSinceMouseMoved = 0
 end
 --Hello World
