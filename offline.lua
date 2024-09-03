@@ -1104,25 +1104,25 @@ end
         love.graphics.print(buttonText, textX, textY)
     end
 
-    function drawPlayerHealthBar(x, y, width, height)
+    function drawPlayerHealthBar(x, y, width, heigth)
         love.graphics.setColor(1, 0 ,0)
-        love.graphics.rectangle("fill", x, y, width, height)
+        love.graphics.rectangle("fill", x, y, width, heigth)
         if player.attributes.jet.health / player.attributes.jet.maxHealth > 0 then
             love.graphics.setColor(0, 1 ,0)
-            love.graphics.rectangle("fill", x, y, width * player.attributes.jet.health / player.attributes.jet.maxHealth, height)
+            love.graphics.rectangle("fill", x, y, width * player.attributes.jet.health / player.attributes.jet.maxHealth, heigth)
         end
         if isInside(x,y,width,height,mouseX,mouseY) then
             showInformation("This is your Jets Health Bar. If it depletes you will not be able to use the Jet. You can use scrap to repair it.")
         end
     end
-    function drawBaseHealthBar(x, y, width, height)
+    function drawBaseHealthBar(x, y, width, heigth)
         love.graphics.setColor(0, 0 ,0)
-        love.graphics.rectangle("fill", x, y, width, height)
+        love.graphics.rectangle("fill", x, y, width, heigth)
         if base.health / base.maxHealth > 0 then
             love.graphics.setColor(0, 0 ,1)
             love.graphics.rectangle("fill", x, y, width * base.health / base.maxHealth, heigth)
         end
-        if isInside(x, y, width, height, mouseX, mouseY) then
+        if isInside(x,y,width,height,mouseX,mouseY) then
             showInformation("This is your Bases Health Bar. If it depletes you will lose. Defend your base at all cost!")
         end
     end
@@ -1224,7 +1224,7 @@ end
         end
     end
     function isInside(x, y, width, height, x2, y2)
-        return x2 > x and y2 > Y and x2 < x + width and y2 < y + height
+        return x2 > x and y2 > Y and x2 < x + width and y2 < y + heigth
     end
     function showInformation(information, atMouse, x, y)
         if timeSinceMouseMoved > 1.5 then
